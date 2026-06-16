@@ -1,0 +1,63 @@
+<header class="navbar">
+  <div class="navbar-container">
+    <!-- 🌇 Logo -->
+    <a routerLink="/" class="navbar-logo">
+      <span class="logo-icon">🌇</span>
+      <span class="logo-text">Discover Barcelona</span>
+    </a>
+
+    <!-- 🚀 Desna strana -->
+    <div class="navbar-auth">
+      <ng-container *ngIf="isAuthenticated; else guest">
+        <!-- ✅ ISPRAVLJENI DROPDOWN -->
+        <div class="dropdown" #dropdownContainer>
+          <button class="user-btn" (click)="toggleDropdown()">
+            👤 {{ userName }}
+            <span class="dropdown-arrow" [class.open]="isDropdownOpen">▼</span>
+          </button>
+
+          <!-- Dropdown meni - otvara se i zatvara pravilno -->
+          <div class="dropdown-menu" *ngIf="isDropdownOpen">
+            <a routerLink="/profile" (click)="closeDropdown()" class="dropdown-item">
+              👤 Profil
+            </a>
+            <a *ngIf="userRole === 'MANAGER'" routerLink="/manager" (click)="closeDropdown()" class="dropdown-item">
+              🏢 Manager Dashboard
+            </a>
+            <a *ngIf="userRole === 'ADMIN'" routerLink="/admin" (click)="closeDropdown()" class="dropdown-item">
+              ⚙️ Admin panel
+            </a>
+            <div class="dropdown-divider"></div>
+            <button (click)="logout()" class="dropdown-item logout-btn">
+              🚪 Odjavi se
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #guest>
+        <a routerLink="/login" class="auth-btn">Prijavi se</a>
+        <a routerLink="/register" class="auth-btn register">Registruj se</a>
+      </ng-template>
+
+      <button class="mobile-toggle" (click)="toggleMobileMenu()">
+        ☰
+      </button>
+    </div>
+  </div>
+
+  <!-- 📱 Mobile meni -->
+  <div class="mobile-menu" *ngIf="isMobileMenuOpen">
+    <a routerLink="/" (click)="toggleMobileMenu()">Početna</a>
+    <ng-container *ngIf="isAuthenticated; else mobileGuest">
+      <a routerLink="/profile" (click)="toggleMobileMenu()">Profil</a>
+      <a *ngIf="userRole === 'MANAGER'" routerLink="/manager" (click)="toggleMobileMenu()">Manager Dashboard</a>
+      <a *ngIf="userRole === 'ADMIN'" routerLink="/admin" (click)="toggleMobileMenu()">Admin</a>
+      <button (click)="logout()">Odjavi se</button>
+    </ng-container>
+    <ng-template #mobileGuest>
+      <a routerLink="/login" (click)="toggleMobileMenu()">Prijava</a>
+      <a routerLink="/register" (click)="toggleMobileMenu()">Registracija</a>
+    </ng-template>
+  </div>
+</header>

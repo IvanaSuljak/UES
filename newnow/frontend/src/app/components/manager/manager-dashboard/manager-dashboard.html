@@ -1,0 +1,143 @@
+<div class="manager-container">
+  <div class="header">
+    <h1>👔 Manager Dashboard</h1>
+    <button class="btn-logout" (click)="logout()">Odjavi se</button>
+  </div>
+
+  <!-- Ako nema lokacije -->
+  <div *ngIf="!myLocation" class="empty-state">
+    <p>Učitavanje...</p>
+  </div>
+
+  <!-- Ako ima lokacija -->
+  <div *ngIf="myLocation" class="content">
+    <!-- Info o lokaciji -->
+    <div class="location-card">
+      <img [src]="myLocation.imageUrl" [alt]="myLocation.name">
+      <div class="location-details">
+        <h2>{{ myLocation.name }}</h2>
+        <p>📍 {{ myLocation.address }}</p>
+        <p>🏷️ {{ myLocation.type }}</p>
+        <p>{{ myLocation.description }}</p>
+      </div>
+    </div>
+
+    <!-- Događaji -->
+    <div class="events-section">
+      <div class="header-row">
+        <h2>🎉 Događaji</h2>
+        <button class="btn-add" (click)="openEventForm()">+ Dodaj događaj</button>
+      </div>
+
+      <div *ngIf="events.length === 0" class="empty-state">
+        <p>Nema događaja. Dodajte prvi!</p>
+      </div>
+
+      <div class="events-grid">
+        <div *ngFor="let event of events" class="event-card">
+          <img [src]="event.imageUrl" [alt]="event.title">
+          <div class="event-info">
+            <h3>{{ event.title }}</h3>
+            <p>📅 {{ event.dateTime | date:'dd.MM.yyyy HH:mm' }}</p>
+            <p>💰 {{ event.price ? event.price + ' €' : 'Besplatno' }}</p>
+            <p>🏷️ {{ event.type }}</p>
+            <p>{{ event.description }}</p>
+            <span *ngIf="event.isRegular" class="badge">Redovan</span>
+          </div>
+          <div class="event-actions">
+            <button class="btn-edit" (click)="openEventForm(event)">✏️</button>
+            <button class="btn-delete" (click)="deleteEvent(event.id)">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ NOVA SEKCIJA - RECENZIJE -->
+    <div class="reviews-section">
+      <div class="header-row">
+        <h2>⭐ Recenzije na mojim događajima</h2>
+      </div>
+
+      <div *ngIf="reviews.length === 0" class="empty-state">
+        <p>Nema recenzija za vaše događaje.</p>
+      </div>
+
+      <div class="reviews-list">
+        <div *ngFor="let review of reviews" class="review-card" [class.hidden-review]="review.hidden">
+          <div class="review-header">
+            <div class="review-user-info">
+              <strong>{{ review.user?.fullName }}</strong>
+              <span class="rating">⭐ {{ review.rating }}/5</span>
+            </div>
+            <span *ngIf="review.hidden" class="badge-hidden">Sakriveno</span>
+          </div>
+
+          <p class="review-event" *ngIf="review.event">📅 Događaj: <strong>{{ review.event?.title }}</strong></p>
+          <p class="review-comment">"{{ review.comment }}"</p>
+          <p class="review-date">{{ review.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+
+          <div class="review-actions">
+            <button class="btn-reply" (click)="openReplyForm(review)">💬 Odgovori</button>
+            <button class="btn-hide" (click)="hideReview(review.id)" *ngIf="!review.hidden">👁️ Sakrij</button>
+            <button class="btn-unhide" (click)="unhideReview(review.id)" *ngIf="review.hidden">👁️ Prikaži</button>
+            <button class="btn-delete-review" (click)="deleteReview(review.id)">🗑️ Obriši</button>
+          </div>
+
+          <!-- Prikaz odgovora menadžera -->
+          <div *ngIf="review.managerReply" class="manager-reply">
+            <strong>Vaš odgovor:</strong>
+            <p>{{ review.managerReply }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal za događaj -->
+  <div class="modal-overlay" *ngIf="showEventForm" (click)="closeEventForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>{{ editingEvent ? 'Izmeni događaj' : 'Dodaj događaj' }}</h2>
+
+      <form (ngSubmit)="saveEvent()">
+        <input [(ngModel)]="eventForm.title" name="title" placeholder="Naziv događaja" required>
+        <textarea [(ngModel)]="eventForm.description" name="description" placeholder="Opis" required></textarea>
+        <input [(ngModel)]="eventForm.dateTime" name="dateTime" type="datetime-local" required>
+        <input [(ngModel)]="eventForm.price" name="price" type="number" placeholder="Cena (ostavi prazno za besplatno)">
+        <input [(ngModel)]="eventForm.type" name="type" placeholder="Tip (npr. Muzika, Festival)" required>
+        <input [(ngModel)]="eventForm.imageUrl" name="imageUrl" placeholder="URL slike" required>
+
+        <label>
+          <input [(ngModel)]="eventForm.isRegular" name="isRegular" type="checkbox">
+          Redovan događaj
+        </label>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-save">✅ Sačuvaj</button>
+          <button type="button" class="btn-cancel" (click)="closeEventForm()">Otkaži</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ NOVI MODAL - Odgovor na recenziju -->
+  <div class="modal-overlay" *ngIf="showReplyForm" (click)="closeReplyForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>💬 Odgovori na recenziju</h2>
+
+      <div class="original-review" *ngIf="replyingToReview">
+        <p><strong>Korisnik:</strong> {{ replyingToReview?.user?.fullName }}</p>
+        <p><strong>Ocena:</strong> ⭐ {{ replyingToReview?.rating }}/5</p>
+        <p><strong>Komentar:</strong> "{{ replyingToReview?.comment }}"</p>
+      </div>
+
+      <form (ngSubmit)="saveReply()">
+        <textarea [(ngModel)]="replyText" name="replyText" placeholder="Unesite vaš odgovor..." required></textarea>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-save">✅ Pošalji odgovor</button>
+          <button type="button" class="btn-cancel" (click)="closeReplyForm()">Otkaži</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

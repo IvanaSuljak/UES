@@ -1,0 +1,97 @@
+<!-- 🏙️ HERO SEKCIJA -->
+<header class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">Discover Barcelona</h1>
+    <p class="hero-subtitle">Art, Culture & Life under the Mediterranean Sun</p>
+  </div>
+</header>
+
+<!-- 📍 LOKACIJE -->
+<div class="locations-container">
+  <h2 class="locations-title">📍 Otkrijte Barselonu</h2>
+
+  <!-- 🟢 NOVO - SEARCH I FILTER SEKCIJA -->
+  <div class="search-filter-section">
+    <!-- Search bar -->
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="applyFilters()"
+        placeholder="🔍 Pretraži po nazivu ili adresi..."
+        class="search-input"
+      />
+    </div>
+
+    <!-- Filter dropdown -->
+    <div class="filter-box">
+      <select
+        [(ngModel)]="selectedType"
+        (change)="applyFilters()"
+        class="filter-select"
+      >
+        <option value="">🎛️ Svi tipovi mesta</option>
+        <option *ngFor="let type of availableTypes" [value]="type">
+          {{ type }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Reset button -->
+    <button class="reset-btn" (click)="resetFilters()" *ngIf="searchQuery || selectedType">
+      🔄 Resetuj
+    </button>
+  </div>
+
+  <!-- 🟢 Broj rezultata -->
+  <p class="results-count" *ngIf="filteredLocations.length > 0">
+    Prikazano {{ filteredLocations.length }} od {{ locationsWithRatings.length }} lokacija
+  </p>
+
+  <!-- Grid sa lokacijama -->
+  <div class="locations-grid">
+    <div class="location-card" *ngFor="let loc of filteredLocations">
+
+      <!-- 🖼️ Slika lokacije SA RATING BADGE-OM -->
+      <div class="card-image-wrapper">
+        <img
+          [src]="getImageUrl(loc.imageUrl)"
+          [alt]="loc.name"
+          class="location-img"
+          (error)="onImageError($event)" />
+
+        <!-- Rating badge -->
+        <div class="rating-badge" *ngIf="loc.averageRating > 0">
+          <span class="rating-stars">{{ getRatingStars(loc.averageRating) }}</span>
+          <span class="rating-number">{{ loc.averageRating.toFixed(1) }}</span>
+        </div>
+      </div>
+
+      <!-- 📄 Sadržaj kartice -->
+      <div class="location-content">
+        <h3 class="location-name">{{ loc.name }}</h3>
+        <p class="location-type"><span>🏛️</span> {{ loc.type }}</p>
+        <p class="location-address"><span>📌</span> {{ loc.address }}</p>
+
+        <p class="reviews-count" *ngIf="loc.totalReviews > 0">
+          💬 {{ loc.totalReviews }} {{ getReviewsText(loc.totalReviews) }}
+        </p>
+
+        <button class="show-details-btn" (click)="viewLocationDetails(loc.id)">
+          🔍 Vidi detalje
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🟢 Poruka ako nema rezultata -->
+  <div class="no-locations" *ngIf="filteredLocations.length === 0 && locationsWithRatings.length > 0">
+    <p>😔 Nema rezultata za vašu pretragu.</p>
+    <button class="reset-btn" (click)="resetFilters()">🔄 Prikaži sva mesta</button>
+  </div>
+
+  <!-- Poruka ako se učitava -->
+  <div class="no-locations" *ngIf="locationsWithRatings.length === 0">
+    <p>⏳ Učitavanje lokacija...</p>
+  </div>
+</div>

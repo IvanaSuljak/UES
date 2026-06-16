@@ -1,0 +1,96 @@
+<div class="profile-page">
+  <div class="profile-container">
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        👤
+      </div>
+      <h2 class="profile-title">Moj profil</h2>
+      <p class="profile-subtitle">Upravljajte svojim nalogom</p>
+    </div>
+
+    <!-- Info cards -->
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="info-icon">👤</div>
+        <div class="info-content">
+          <label>Ime i prezime</label>
+          <p>{{ userName }}</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon">📧</div>
+        <div class="info-content">
+          <label>Email adresa</label>
+          <p>{{ userEmail }}</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon">🎭</div>
+        <div class="info-content">
+          <label>Uloga</label>
+          <p class="role-badge" [class.manager]="userRole === 'MANAGER'" [class.admin]="userRole === 'ADMIN'">
+            {{ userRole }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password change section -->
+    <div class="password-section">
+      <button class="change-password-btn" (click)="togglePasswordForm()">
+        <span class="btn-icon">🔐</span>
+        {{ showPasswordForm ? 'Otkaži promenu lozinke' : 'Promeni lozinku' }}
+      </button>
+
+      <!-- Password form -->
+      <div class="password-form" *ngIf="showPasswordForm">
+        <h3>Promena lozinke</h3>
+
+        <div class="form-group">
+          <label>🔒 Trenutna lozinka</label>
+          <input
+            type="password"
+            [(ngModel)]="oldPassword"
+            placeholder="Unesite trenutnu lozinku"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>🔑 Nova lozinka</label>
+          <input
+            type="password"
+            [(ngModel)]="newPassword"
+            placeholder="Unesite novu lozinku"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>✅ Potvrdi novu lozinku</label>
+          <input
+            type="password"
+            [(ngModel)]="confirmPassword"
+            placeholder="Potvrdite novu lozinku"
+            class="form-input"
+          />
+        </div>
+
+        <p class="error-message" *ngIf="passwordError">❌ {{ passwordError }}</p>
+        <p class="success-message" *ngIf="passwordSuccess">✅ {{ passwordSuccess }}</p>
+
+        <button class="submit-btn" (click)="changePassword()">
+          Potvrdi promenu
+        </button>
+      </div>
+    </div>
+
+    <!-- Logout button -->
+    <button class="logout-btn" (click)="logout()">
+      🚪 Odjavi se
+    </button>
+  </div>
+</div>

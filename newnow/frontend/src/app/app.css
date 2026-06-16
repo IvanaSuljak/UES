@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  /* Topla, svetla pozadina */
+  background-color: #F5F5F0;
+  color: #333333; /* Tamna osnovna boja teksta */
+}
+
+/* 🔹 Glavni deo sajta (Sadržaj unutar router-outlet-a) */
+/* U tvom slučaju, LocationsComponent će se nalaziti ovde */
+.main-content {
+  padding: 80px 40px; /* Veći padding */
+  background-color: #F5F5F0; /* Ista pozadina kao telo */
+  min-height: 80vh;
+}
+
+/* 🔹 Footer */
+.footer {
+  text-align: center;
+  padding: 25px;
+  font-size: 14px;
+  color: #666;
+  background-color: #E0E0DB; /* Svetli footer */
+  border-top: 1px solid #CCCCCC;
+}
+
+/* Efekat pojavljivanja (ostaje isti) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

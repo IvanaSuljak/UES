@@ -1,0 +1,568 @@
+/* ============================================
+   🏙️ HERO SEKCIJA
+   ============================================ */
+.hero-home {
+  position: relative;
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  background: url('/assets/barcelona-hero.jpg') center/cover no-repeat;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 20px;
+  animation: fadeIn 1.5s ease;
+}
+
+.hero-title {
+  font-size: 64px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+.hero-subtitle {
+  font-size: 24px;
+  color: white;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   📦 CONTAINER
+   ============================================ */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ============================================
+   📋 SECTION HEADERS
+   ============================================ */
+.today-events-section,
+.top-locations-section {
+  padding: 80px 0;
+}
+
+.today-events-section {
+  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+}
+
+.top-locations-section {
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+}
+
+.section-title {
+  font-size: 42px;
+  font-weight: 800;
+  color: #2b2b2b;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 18px;
+  margin-bottom: 50px;
+}
+
+/* ============================================
+   🎉 DANAŠNJI DOGAĐAJI
+   ============================================ */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.event-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.event-image-wrapper {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.event-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover .event-image {
+  transform: scale(1.1);
+}
+
+.event-type-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(240, 173, 78, 0.95);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+}
+
+.event-content {
+  padding: 20px;
+}
+
+.event-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.event-location,
+.event-time,
+.event-price {
+  font-size: 15px;
+  color: #666;
+  margin: 8px 0;
+}
+
+.event-btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 24px;
+  background: #D9534F;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.event-btn:hover {
+  background: #FF7043;
+}
+
+/* ============================================
+   ⭐ TOP LOKACIJE
+   ============================================ */
+.locations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.location-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.location-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-image-wrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.location-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.location-card:hover .location-image {
+  transform: scale(1.1);
+}
+
+.rating-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 14px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+}
+
+.rating-stars {
+  font-size: 0.9rem;
+}
+
+.rating-number {
+  font-weight: 700;
+  color: #F0AD4E;
+  font-size: 1.1rem;
+}
+
+.location-content {
+  padding: 20px;
+}
+
+.location-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #c62828;
+  margin-bottom: 10px;
+}
+
+.location-type,
+.location-address {
+  font-size: 15px;
+  color: #666;
+  margin: 8px 0;
+}
+
+.reviews-count {
+  color: #999;
+  font-size: 14px;
+  margin: 8px 0 16px 0;
+  font-style: italic;
+}
+
+.location-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.location-btn:hover {
+  background: #2563eb;
+}
+
+/* ============================================
+   🔗 VIEW ALL BUTTON
+   ============================================ */
+.view-all-wrapper {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.view-all-btn {
+  display: inline-block;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, #D9534F, #FF7043);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(217, 83, 79, 0.3);
+}
+
+.view-all-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(217, 83, 79, 0.4);
+}
+
+/* ============================================
+   📭 NO EVENTS - BEZ ANIMACIJE
+   ============================================ */
+.no-events {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-state {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 25px;
+  opacity: 0.4;
+}
+
+.empty-state h3 {
+  font-size: 28px;
+  color: #555;
+  margin-bottom: 15px;
+  font-weight: 800;
+}
+
+.empty-state p {
+  font-size: 17px;
+  color: #999;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* ============================================
+   🔄 LOADING
+   ============================================ */
+.loading {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #D9534F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   🎬 ANIMACIJE
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ============================================
+   📱 RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 32px;
+  }
+
+  .container {
+    padding: 0 20px;
+  }
+
+  .events-grid,
+  .locations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .empty-icon {
+    font-size: 60px;
+  }
+
+  .empty-state h3 {
+    font-size: 22px;
+  }
+
+  .empty-state p {
+    font-size: 15px;
+  }
+  /* ============================================
+  /* ============================================
+     🎯 EVENTS CTA SEKCIJA - MODERAN DIZAJN
+     ============================================ */
+  .events-cta-section {
+    padding: 80px 0;
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  }
+
+  .events-cta-card {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 24px;
+    padding: 60px;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .events-cta-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .events-cta-card::after {
+    content: "";
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .events-cta-left {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .events-icon-circle {
+    width: 140px;
+    height: 140px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: pulse 3s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .events-icon {
+    font-size: 70px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+  }
+
+  .events-cta-right {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  .events-cta-title {
+    font-size: 42px;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+  }
+
+  .events-cta-subtitle {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 30px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .events-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 38px;
+    background: white;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 17px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .events-cta-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    background: #f8f9fa;
+  }
+
+  .btn-arrow {
+    font-size: 22px;
+    transition: transform 0.3s ease;
+  }
+
+  .events-cta-btn:hover .btn-arrow {
+    transform: translateX(5px);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .events-cta-card {
+      flex-direction: column;
+      text-align: center;
+      gap: 30px;
+      padding: 40px 30px;
+    }
+
+    .events-icon-circle {
+      width: 110px;
+      height: 110px;
+    }
+
+    .events-icon {
+      font-size: 55px;
+    }
+
+    .events-cta-title {
+      font-size: 28px;
+    }
+
+    .events-cta-subtitle {
+      font-size: 16px;
+    }
+
+    .events-cta-btn {
+      padding: 14px 32px;
+      font-size: 16px;
+    }
+  }
+ }

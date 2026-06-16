@@ -1,0 +1,10 @@
+/* styles.css */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  /* Topla, svetla pozadina */
+  background-color: #F5F5F0;
+  color: #333333; /* Tamna osnovna boja teksta */
+}
+
+

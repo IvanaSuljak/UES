@@ -1,0 +1,92 @@
+<!-- MODAL BACKDROP -->
+<div
+  class="modal-backdrop"
+  *ngIf="isOpen"
+  (click)="onBackdropClick($event)">
+</div>
+
+<!-- MODAL DIALOG -->
+<div
+  class="modal-dialog"
+  *ngIf="isOpen">
+
+  <!-- MODAL HEADER -->
+  <div class="modal-header">
+    <h2 class="modal-title">🎫 Događaji - {{ location?.name }}</h2>
+    <button class="modal-close-btn" (click)="closeModal()" aria-label="Zatvori">
+      ✕
+    </button>
+  </div>
+
+  <!-- MODAL CONTENT -->
+  <div class="modal-content">
+    <!-- LOADING STATE -->
+    <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Učitavanje događaja...</p>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div *ngIf="errorMessage && !isLoading" class="error-message">
+      <p>⚠️ {{ errorMessage }}</p>
+    </div>
+
+    <!-- EVENTS GRID -->
+    <div class="events-grid" *ngIf="events.length > 0 && !isLoading">
+      <div class="event-card" *ngFor="let e of events; let i = index">
+        <div class="event-header">
+          <!-- ISPRAVKA: title umjesto name -->
+          <h3 class="event-name">{{ e.title || 'Bez naziva' }}</h3>
+          <span class="event-badge">Događaj</span>
+        </div>
+
+        <div class="event-meta">
+          <!-- ISPRAVKA: dateTime umjesto date -->
+          <p class="event-date" *ngIf="e.dateTime">
+            📅 {{ e.dateTime | date: 'dd.MM.yyyy HH:mm' }}
+          </p>
+        </div>
+
+        <!-- OPIS -->
+        <p class="event-description" *ngIf="e.description">
+          {{ e.description }}
+        </p>
+
+        <!-- TIP DOGAĐAJA -->
+        <p class="event-type" *ngIf="e.type">
+          🎭 Tip: {{ e.type }}
+        </p>
+
+        <!-- REDOVAN DOGAĐAJ -->
+        <p class="event-regular" *ngIf="e.isRegular">
+          🔄 Redovan događaj
+        </p>
+
+        <!-- CIJENA -->
+        <div class="event-price" *ngIf="e.price !== undefined">
+          <p class="price-label">
+            💰
+            <span *ngIf="e.price === 0">
+              BESPLATNO
+            </span>
+            <span *ngIf="e.price > 0">
+              {{ e.price }} дин.
+            </span>
+          </p>
+        </div>
+
+        <button class="event-action-btn">Detaljnije →</button>
+      </div>
+    </div>
+
+    <!-- NO EVENTS STATE -->
+    <div *ngIf="events.length === 0 && !isLoading && !errorMessage" class="no-events">
+      <p>😢 Nema događaja za ovu lokaciju.</p>
+    </div>
+  </div>
+
+  <!-- MODAL FOOTER -->
+  <div class="modal-footer">
+    <button class="modal-action-btn secondary" (click)="closeModal()">Zatvori</button>
+  </div>
+</div>

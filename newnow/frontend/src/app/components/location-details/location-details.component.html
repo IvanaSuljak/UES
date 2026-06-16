@@ -1,0 +1,214 @@
+<div class="location-details-container" *ngIf="location">
+  <!-- Header sa slikom -->
+  <div class="location-header">
+    <img [src]="location.imageUrl || 'assets/placeholder.jpg'"
+         [alt]="location.name"
+         class="location-image">
+    <div class="location-overlay">
+      <h1>{{ location.name }}</h1>
+      <p class="location-type">{{ location.type }}</p>
+    </div>
+  </div>
+
+  <!-- Osnovne informacije -->
+  <div class="location-info">
+    <div class="info-section">
+      <h2>📍 Adresa</h2>
+      <p>{{ location.address }}</p>
+    </div>
+
+    <div class="info-section">
+      <h2>📝 Opis</h2>
+      <p>{{ location.description }}</p>
+    </div>
+
+    <!-- 🟢 Prosečna ocena -->
+    <div class="info-section rating-section">
+      <h2>⭐ Ocena</h2>
+      <div class="rating-display">
+        <span class="rating-number">{{ location.averageRating?.toFixed(1) || 'N/A' }}</span>
+        <span class="rating-stars">{{ getRatingStars(Math.round(location.averageRating || 0)) }}</span>
+        <span class="rating-count">({{ location.totalReviews || 0 }} utisaka)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Predstojeći događaji -->
+  <div class="events-section" *ngIf="upcomingEvents.length > 0">
+    <h2>🎉 Predstojeći događaji</h2>
+    <div class="events-grid">
+      <div class="event-card" *ngFor="let event of upcomingEvents">
+        <img [src]="event.imageUrl || 'assets/event-placeholder.jpg'"
+             [alt]="event.title"
+             class="event-image">
+        <div class="event-info">
+          <h3>{{ event.title }}</h3>
+          <p class="event-date">📅 {{ event.dateTime | date: 'dd.MM.yyyy HH:mm' }}</p>
+          <p class="event-price" *ngIf="event.price">💰 {{ event.price }} RSD</p>
+          <p class="event-type">🎭 {{ event.type }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ FORMA ZA OSTAVLJANJE UTISKA - 4 KATEGORIJE (SVE OPCIONE) -->
+  <div class="review-form-section">
+    <h2>✍️ Ostavite svoj utisak</h2>
+    <p class="form-description">Sve ocene su opcione - ocenite samo ono što želite!</p>
+
+    <form (ngSubmit)="submitReview()" class="review-form">
+
+      <!-- 🎤 OCENA NASTUPA (1-10) -->
+      <div class="form-group">
+        <label for="performanceRating">🎤 Ocena nastupa (1-10):</label>
+        <div class="rating-input">
+          <input
+            type="range"
+            id="performanceRating"
+            [(ngModel)]="newReview.performanceRating"
+            name="performanceRating"
+            min="0"
+            max="10"
+            step="1">
+          <span class="rating-value" *ngIf="newReview.performanceRating > 0">
+            {{ getRatingStars(newReview.performanceRating) }} ({{ newReview.performanceRating }})
+          </span>
+          <span class="rating-value" *ngIf="!newReview.performanceRating || newReview.performanceRating === 0">
+            Nije ocenjeno
+          </span>
+        </div>
+      </div>
+
+      <!-- 🔊 OCENA ZVUKA I SVETLA (1-10) -->
+      <div class="form-group">
+        <label for="soundLightRating">🔊 Ocena zvuka i svetla (1-10):</label>
+        <div class="rating-input">
+          <input
+            type="range"
+            id="soundLightRating"
+            [(ngModel)]="newReview.soundLightRating"
+            name="soundLightRating"
+            min="0"
+            max="10"
+            step="1">
+          <span class="rating-value" *ngIf="newReview.soundLightRating > 0">
+            {{ getRatingStars(newReview.soundLightRating) }} ({{ newReview.soundLightRating }})
+          </span>
+          <span class="rating-value" *ngIf="!newReview.soundLightRating || newReview.soundLightRating === 0">
+            Nije ocenjeno
+          </span>
+        </div>
+      </div>
+
+      <!-- 🏛️ OCENA PROSTORA (1-10) -->
+      <div class="form-group">
+        <label for="spaceRating">🏛️ Ocena prostora (1-10):</label>
+        <div class="rating-input">
+          <input
+            type="range"
+            id="spaceRating"
+            [(ngModel)]="newReview.spaceRating"
+            name="spaceRating"
+            min="0"
+            max="10"
+            step="1">
+          <span class="rating-value" *ngIf="newReview.spaceRating > 0">
+            {{ getRatingStars(newReview.spaceRating) }} ({{ newReview.spaceRating }})
+          </span>
+          <span class="rating-value" *ngIf="!newReview.spaceRating || newReview.spaceRating === 0">
+            Nije ocenjeno
+          </span>
+        </div>
+      </div>
+
+      <!-- 🌟 UKUPAN UTISAK (1-10) -->
+      <div class="form-group">
+        <label for="overallRating">🌟 Ukupan utisak (1-10):</label>
+        <div class="rating-input">
+          <input
+            type="range"
+            id="overallRating"
+            [(ngModel)]="newReview.overallRating"
+            name="overallRating"
+            min="0"
+            max="10"
+            step="1">
+          <span class="rating-value" *ngIf="newReview.overallRating > 0">
+            {{ getRatingStars(newReview.overallRating) }} ({{ newReview.overallRating }})
+          </span>
+          <span class="rating-value" *ngIf="!newReview.overallRating || newReview.overallRating === 0">
+            Nije ocenjeno
+          </span>
+        </div>
+      </div>
+
+      <!-- 💬 KOMENTAR -->
+      <div class="form-group">
+        <label for="comment">💬 Komentar:</label>
+        <textarea
+          id="comment"
+          [(ngModel)]="newReview.comment"
+          name="comment"
+          rows="4"
+          placeholder="Podelite svoje iskustvo..."
+          required>
+        </textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">Objavi utisak</button>
+    </form>
+  </div>
+
+  <!-- Lista utisaka -->
+  <div class="reviews-section">
+    <div class="reviews-header">
+      <h2>💬 Utisci korisnika ({{ reviews.length }})</h2>
+
+      <!-- Sortiranje -->
+      <div class="sort-controls">
+        <label>Sortiraj po:</label>
+        <select [(ngModel)]="sortBy" (change)="onSortChange()">
+          <option value="date">Datumu</option>
+          <option value="rating">Oceni</option>
+        </select>
+
+        <select [(ngModel)]="sortOrder" (change)="onSortChange()">
+          <option value="desc">Opadajuće</option>
+          <option value="asc">Rastuće</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="reviews-list">
+      <div class="review-card" *ngFor="let review of reviews">
+        <div class="review-header">
+          <div class="review-user">
+            <span class="user-icon">👤</span>
+            <div>
+              <p class="user-name">{{ review.user?.fullName || 'Anoniman korisnik' }}</p>
+              <p class="review-date">{{ getFormattedDate(review.createdAt) }}</p>
+            </div>
+          </div>
+          <div class="review-rating">
+            {{ getRatingStars(Math.round(review.averageRating || 0)) }}
+            <span class="rating-number">({{ (review.averageRating || 0).toFixed(1) }})</span>
+          </div>
+        </div>
+
+        <!-- ✅ PRIKAŽI SVE 4 OCENE AKO POSTOJE -->
+        <div class="review-ratings-detail" *ngIf="review.performanceRating || review.soundLightRating || review.spaceRating || review.overallRating">
+          <p *ngIf="review.performanceRating">🎤 Nastup: {{ review.performanceRating }}/10</p>
+          <p *ngIf="review.soundLightRating">🔊 Zvuk i svetlo: {{ review.soundLightRating }}/10</p>
+          <p *ngIf="review.spaceRating">🏛️ Prostor: {{ review.spaceRating }}/10</p>
+          <p *ngIf="review.overallRating">🌟 Ukupno: {{ review.overallRating }}/10</p>
+        </div>
+
+        <p class="review-comment">{{ review.comment }}</p>
+      </div>
+
+      <div class="no-reviews" *ngIf="reviews.length === 0">
+        <p>Još nema utisaka za ovu lokaciju. Budite prvi! 🎉</p>
+      </div>
+    </div>
+  </div>
+</div>

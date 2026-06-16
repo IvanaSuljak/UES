@@ -1,0 +1,138 @@
+<div class="events-page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <h1 class="page-title">🎉 {{ showOnlyToday ? 'Današnji događaji' : 'Svi događaji' }}</h1>
+      <p class="page-subtitle">Otkrijte najbolje događaje u gradu</p>
+    </div>
+  </div>
+
+  <!-- SEARCH & FILTERS -->
+  <div class="filters-section">
+    <div class="container">
+      <div class="filters-wrapper">
+        <!-- SEARCH -->
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="applyFilters()"
+            placeholder="🔍 Pretraži po nazivu, mestu ili adresi..."
+            class="search-input">
+        </div>
+
+        <!-- TYPE FILTER -->
+        <div class="filter-group">
+          <select
+            [(ngModel)]="selectedType"
+            (change)="applyFilters()"
+            class="filter-select">
+            <option value="">🎭 Svi tipovi</option>
+            <option *ngFor="let type of eventTypes" [value]="type">
+              {{ type }}
+            </option>
+          </select>
+        </div>
+
+        <!-- PRICE FILTER -->
+        <div class="filter-group">
+          <select
+            [(ngModel)]="selectedPriceFilter"
+            (change)="applyFilters()"
+            class="filter-select">
+            <option value="">💰 Sve cene</option>
+            <option value="free">Besplatno</option>
+            <option value="paid">Plaćeno</option>
+          </select>
+        </div>
+
+        <!-- 🟢 NOVO - TOGGLE DANAS / SVI -->
+        <button
+          (click)="toggleShowToday()"
+          class="toggle-today-btn"
+          [class.active]="showOnlyToday">
+          {{ showOnlyToday ? '📅 Samo danas' : '📆 Svi događaji' }}
+        </button>
+
+        <!-- RESET BUTTON -->
+        <button (click)="resetFilters()" class="reset-btn">
+          ✕ Resetuj
+        </button>
+      </div>
+
+      <p class="results-count">
+        Pronađeno: <strong>{{ filteredEvents.length }}</strong>
+        {{ showOnlyToday ? 'današnjih' : '' }} događaja
+      </p>
+    </div>
+  </div>
+
+  <!-- EVENTS GRID -->
+  <div class="events-section">
+    <div class="container">
+      <div class="events-grid" *ngIf="!isLoading && filteredEvents.length > 0">
+        <div class="event-card" *ngFor="let event of filteredEvents">
+          <div class="event-image-wrapper">
+            <img
+              [src]="getImageUrl(event.imageUrl)"
+              [alt]="event.title"
+              class="event-image"
+              (error)="onImageError($event)">
+            <div class="event-type-badge">{{ event.type }}</div>
+          </div>
+
+          <div class="event-content">
+            <h3 class="event-title">{{ event.title }}</h3>
+
+            <p class="event-location" *ngIf="event.location">
+              📍 {{ event.location.name }}
+            </p>
+
+            <!-- 🟢 NOVO - Prikaz adrese -->
+            <p class="event-address" *ngIf="event.location?.address">
+              🗺️ {{ event.location.address }}
+            </p>
+
+            <div class="event-datetime">
+              <span class="event-date">📅 {{ getEventDate(event.dateTime) }}</span>
+              <span class="event-time">🕐 {{ getEventTime(event.dateTime) }}</span>
+            </div>
+
+            <p class="event-price">
+              <span *ngIf="event.price === 0" class="price-free">💚 BESPLATNO</span>
+              <span *ngIf="event.price > 0" class="price-paid">💰 {{ event.price }} RSD</span>
+            </p>
+
+            <p class="event-description" *ngIf="event.description">
+              {{ event.description }}
+            </p>
+
+            <a
+              [routerLink]="['/locations', event.location?.id]"
+              class="event-btn">
+              Vidi detalje →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- NO RESULTS -->
+      <div class="no-results" *ngIf="!isLoading && filteredEvents.length === 0">
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <h3>{{ showOnlyToday ? 'Nema događaja za danas' : 'Nema događaja' }}</h3>
+          <p>{{ showOnlyToday ? 'Vratite se sutra ili pogledajte sve događaje' : 'Pokušajte sa drugačijim filterima' }}</p>
+          <button (click)="resetFilters()" class="reset-empty-btn">
+            Resetuj filtere
+          </button>
+        </div>
+      </div>
+
+      <!-- LOADING -->
+      <div class="loading" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>⏳ Učitavanje događaja...</p>
+      </div>
+    </div>
+  </div>
+</div>

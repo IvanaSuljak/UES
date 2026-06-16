@@ -1,0 +1,116 @@
+<!-- 🏙️ HERO SEKCIJA -->
+<section class="hero-home">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1 class="hero-title">Barcelona Nightlife</h1>
+    <p class="hero-subtitle">Najbolja mesta i događaji u gradu</p>
+  </div>
+</section>
+
+<!-- 📅 DANAŠNJI DOGAĐAJI -->
+<section class="today-events-section">
+  <div class="container">
+    <h2 class="section-title">🎉 Događaji danas</h2>
+    <p class="section-subtitle">Ne propustite najbolje događaje večeras!</p>
+
+    <div class="events-grid" *ngIf="todayEvents.length > 0 && !loading">
+      <div class="event-card" *ngFor="let event of todayEvents">
+        <div class="event-image-wrapper">
+          <img
+            [src]="getImageUrl(event.imageUrl)"
+            [alt]="event.title"
+            class="event-image"
+            (error)="onImageError($event)">
+          <div class="event-type-badge">{{ event.type }}</div>
+        </div>
+
+        <div class="event-content">
+          <h3 class="event-title">{{ event.title }}</h3>
+          <p class="event-location">📍 {{ event.location?.name }}</p>
+          <p class="event-time">🕐 {{ getEventTime(event.dateTime) }}</p>
+          <p class="event-price" *ngIf="event.price">💰 {{ event.price }} RSD</p>
+          <a [routerLink]="['/locations', event.location?.id]" class="event-btn">
+            Vidi detalje
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-events" *ngIf="todayEvents.length === 0 && !loading">
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3>Nema događaja za danas</h3>
+        <p>Vratite se sutra ili pregledajte najbolje ocenjena mesta ispod</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 🟢 DUGME ZA SVE DOGAĐAJE - MODERAN DIZAJN -->
+<section class="events-cta-section">
+  <div class="container">
+    <div class="events-cta-card">
+      <div class="events-cta-left">
+        <div class="events-icon-circle">
+          <span class="events-icon">🎉</span>
+        </div>
+      </div>
+      <div class="events-cta-right">
+        <h2 class="events-cta-title">Pregledaj sve događaje</h2>
+        <p class="events-cta-subtitle">Otkrijte koncerte, festivale i specijalne događaje širom grada</p>
+        <a routerLink="/events" class="events-cta-btn">
+          Vidi sve događaje
+          <span class="btn-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ⭐ TOP LOKACIJE -->
+<section class="top-locations-section">
+  <div class="container">
+    <h2 class="section-title">⭐ Najbolje ocenjena mesta</h2>
+    <p class="section-subtitle">Iskustva koja korisnici najviše preporučuju</p>
+
+    <div class="locations-grid" *ngIf="topLocations.length > 0 && !loading">
+      <div class="location-card" *ngFor="let location of topLocations">
+        <div class="card-image-wrapper">
+          <img
+            [src]="getImageUrl(location.imageUrl)"
+            [alt]="location.name"
+            class="location-image"
+            (error)="onImageError($event)">
+
+          <div class="rating-badge" *ngIf="location.averageRating > 0">
+            <span class="rating-stars">{{ getRatingStars(location.averageRating) }}</span>
+            <span class="rating-number">{{ location.averageRating.toFixed(1) }}</span>
+          </div>
+        </div>
+
+        <div class="location-content">
+          <h3 class="location-name">{{ location.name }}</h3>
+          <p class="location-type">🎭 {{ location.type }}</p>
+          <p class="location-address">📌 {{ location.address }}</p>
+          <p class="reviews-count" *ngIf="location.totalReviews > 0">
+            💬 {{ location.totalReviews }} {{ getReviewsText(location.totalReviews) }}
+          </p>
+          <a [routerLink]="['/locations', location.id]" class="location-btn">
+            Pogledaj detalje
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-all-wrapper">
+      <a routerLink="/locations" class="view-all-btn">
+        Pogledaj sva mesta →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 🔄 LOADING -->
+<div class="loading" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>⏳ Učitavanje...</p>
+</div>

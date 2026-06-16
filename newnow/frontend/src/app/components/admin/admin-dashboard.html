@@ -1,0 +1,129 @@
+<div class="admin-container">
+  <h1>🔧 Admin Panel</h1>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button
+      [class.active]="activeTab === 'requests'"
+      (click)="activeTab = 'requests'">
+      📋 Zahtevi ({{ pendingCount }})
+    </button>
+    <button
+      [class.active]="activeTab === 'locations'"
+      (click)="activeTab = 'locations'">
+      🏢 Lokacije
+    </button>
+    <button
+      [class.active]="activeTab === 'managers'"
+      (click)="activeTab = 'managers'">
+      👥 Menadžeri
+    </button>
+  </div>
+
+  <!-- TAB: ZAHTEVI ZA REGISTRACIJU -->
+  <div *ngIf="activeTab === 'requests'" class="tab-content">
+    <h2>Zahtevi za registraciju</h2>
+
+    <div *ngIf="accountRequests.length === 0" class="empty-state">
+      Nema pending zahteva ✅
+    </div>
+
+    <div *ngFor="let req of accountRequests" class="request-card">
+      <div class="request-info">
+        <h3>{{ req.fullName }}</h3>
+        <p>📧 {{ req.email }}</p>
+      </div>
+      <div class="request-actions">
+        <button class="btn-approve" (click)="approveRequest(req.id)">✅ Odobri</button>
+        <button class="btn-reject" (click)="rejectRequest(req.id)">❌ Odbij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: LOKACIJE -->
+  <div *ngIf="activeTab === 'locations'" class="tab-content">
+    <div class="header-row">
+      <h2>Upravljanje lokacijama</h2>
+      <button class="btn-add" (click)="openLocationForm()">➕ Dodaj lokaciju</button>
+    </div>
+
+    <div class="locations-grid">
+      <div *ngFor="let loc of locations" class="location-card">
+        <img [src]="loc.imageUrl" [alt]="loc.name">
+        <div class="location-info">
+          <h3>{{ loc.name }}</h3>
+          <p>📍 {{ loc.address }}</p>
+          <p>🏷️ {{ loc.type }}</p>
+          <p *ngIf="loc.manager">👤 Manager: {{ loc.manager.fullName }}</p>
+        </div>
+        <div class="location-actions">
+          <button class="btn-edit" (click)="openLocationForm(loc)">✏️</button>
+          <button class="btn-delete" (click)="deleteLocation(loc.id)">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: MENADŽERI -->
+  <div *ngIf="activeTab === 'managers'" class="tab-content">
+    <h2>Dodela menadžera</h2>
+
+    <div *ngFor="let loc of locations" class="manager-row">
+      <div class="manager-info">
+        <h3>{{ loc.name }}</h3>
+        <p *ngIf="loc.manager">👤 Trenutni menadžer: {{ loc.manager.fullName }}</p>
+        <p *ngIf="!loc.manager" class="no-manager">Nema menadžera</p>
+      </div>
+      <div class="manager-actions">
+        <button class="btn-assign" (click)="openManagerAssignment(loc)">
+          {{ loc.manager ? 'Promeni' : 'Dodeli' }} menadžera
+        </button>
+        <button
+          *ngIf="loc.manager"
+          class="btn-remove"
+          (click)="removeManager(loc.id)">
+          Ukloni
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Dodavanje/Uređivanje lokacije -->
+<div *ngIf="showLocationForm" class="modal-overlay" (click)="closeLocationForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>{{ editingLocation ? 'Uredi lokaciju' : 'Dodaj lokaciju' }}</h2>
+
+    <form (ngSubmit)="saveLocation()">
+      <input [(ngModel)]="locationForm.name" name="name" placeholder="Naziv" required>
+      <input [(ngModel)]="locationForm.address" name="address" placeholder="Adresa" required>
+      <input [(ngModel)]="locationForm.type" name="type" placeholder="Tip" required>
+      <textarea [(ngModel)]="locationForm.description" name="description" placeholder="Opis"></textarea>
+      <input [(ngModel)]="locationForm.imageUrl" name="imageUrl" placeholder="URL slike" required>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-save">💾 Sačuvaj</button>
+        <button type="button" class="btn-cancel" (click)="closeLocationForm()">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Dodela menadžera -->
+<div *ngIf="selectedLocation" class="modal-overlay" (click)="selectedLocation = null">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>Dodeli menadžera za: {{ selectedLocation.name }}</h2>
+
+    <select [(ngModel)]="selectedManagerId">
+      <option [value]="null">-- Izaberi korisnika --</option>
+      <option *ngFor="let user of users" [value]="user.id">
+        {{ user.fullName }} ({{ user.email }})
+      </option>
+    </select>
+
+    <div class="modal-actions">
+      <button class="btn-save" (click)="assignManager()">✅ Dodeli</button>
+      <button class="btn-cancel" (click)="selectedLocation = null">Otkaži</button>
+    </div>
+  </div>
+</div>

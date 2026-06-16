@@ -1,0 +1,57 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <!-- Logo/Icon -->
+    <div class="auth-icon">
+      🌇
+    </div>
+
+    <!-- Naslov -->
+    <h2 class="auth-title">Dobrodošli nazad!</h2>
+    <p class="auth-subtitle">Prijavite se na svoj nalog</p>
+
+    <!-- Forma -->
+    <form (ngSubmit)="loginUser()" class="auth-form">
+      <div class="form-group">
+        <label for="email">📧 Email adresa</label>
+        <input
+          type="email"
+          id="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="vas.email@primer.com"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">🔒 Lozinka</label>
+        <input
+          type="password"
+          id="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="••••••••"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <!-- Poruka greške/uspeha -->
+      <div class="message" *ngIf="message" [class.success]="isSuccess" [class.error]="!isSuccess">
+        {{ message }}
+      </div>
+
+      <!-- Submit dugme -->
+      <button type="submit" class="auth-btn" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Prijavi se</span>
+        <span *ngIf="isLoading" class="loading-spinner">⏳ Učitavanje...</span>
+      </button>
+    </form>
+
+    <!-- Link za registraciju -->
+    <div class="auth-footer">
+      <p>Nemate nalog? <a routerLink="/register" class="link">Registrujte se</a></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,429 @@
+/* ============================================
+   🏙️ HERO SEKCIJA
+   ============================================ */
+.hero {
+  position: relative;
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  border-bottom: 5px solid #E0E0DB;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(245,245,240,0.1) 0%, rgba(245,245,240,0.95) 100%);
+  z-index: 1;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../../../assets/barcelona-hero.jpg') center/cover no-repeat;
+  filter: saturate(1.1) brightness(0.9);
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 20px;
+  animation: fadeIn 1.5s ease;
+}
+
+.hero-title {
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #D9534F;
+  text-transform: uppercase;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hero-subtitle {
+  color: #4A4A4A;
+  font-size: 22px;
+  margin-top: 12px;
+  font-weight: 500;
+}
+
+/* ============================================
+   📍 LOCATIONS CONTAINER
+   ============================================ */
+.locations-container {
+  margin: 80px auto;
+  width: 95%;
+  max-width: 1600px;
+  padding: 60px 40px;
+  background: linear-gradient(145deg, #fafafa, #eef2f5);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+}
+
+.locations-title {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 800;
+  color: #2b2b2b;
+  margin-bottom: 50px;
+  letter-spacing: 0.8px;
+  animation: fadeIn 0.8s ease;
+}
+
+/* ============================================
+   📸 LOCATIONS GRID
+   ============================================ */
+.locations-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ============================================
+   🎫 LOCATION CARD
+   ============================================ */
+.location-card {
+  background: #fff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.6s ease;
+  width: 100%;
+  max-width: 450px;
+}
+
+.location-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 🟢 Image wrapper sa badge-om */
+.card-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+}
+
+.location-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  background-color: #f1f1f1;
+  display: block;
+}
+
+.location-card:hover .location-img {
+  transform: scale(1.05);
+}
+
+/* 🟢 Rating badge */
+.rating-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 14px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.rating-stars {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.rating-number {
+  font-weight: 700;
+  color: #F0AD4E;
+  font-size: 1.1rem;
+}
+
+/* ============================================
+   📄 LOCATION CONTENT
+   ============================================ */
+.location-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.location-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #c62828;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.location-type {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 8px;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.location-address {
+  font-size: 16px;
+  color: #777;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 🟢 Reviews count */
+.reviews-count {
+  color: #999;
+  font-size: 0.9rem;
+  margin: 8px 0 16px 0;
+  font-style: italic;
+}
+
+/* 🟢 Show details button */
+.show-details-btn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.show-details-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* Show events button */
+.show-events-btn {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #e53935, #ff7043);
+  color: #fff;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.3);
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.show-events-btn:hover {
+  background: linear-gradient(135deg, #b71c1c, #f44336);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(244, 67, 54, 0.4);
+}
+
+/* 🟢 No locations message */
+.no-locations {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 1.2rem;
+}
+
+/* ============================================
+   🔄 ANIMACIJE
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   📱 RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .hero {
+    height: 300px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .locations-container {
+    margin: 40px auto;
+    padding: 40px 20px;
+    border-radius: 16px;
+  }
+
+  .locations-grid {
+    gap: 20px;
+  }
+
+  .location-card {
+    min-height: 420px;
+    max-width: 100%;
+  }
+
+  .card-image-wrapper {
+    height: 200px;
+  }
+
+  .rating-badge {
+    top: 10px;
+    right: 10px;
+    padding: 6px 10px;
+  }
+
+  .show-details-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+
+  .show-events-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  /* ============================================
+     🔍 SEARCH & FILTER SEKCIJA
+     ============================================ */
+  .search-filter-section {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 280px;
+    max-width: 500px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+
+  .filter-box {
+    min-width: 220px;
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    outline: none;
+    cursor: pointer;
+    background: white;
+    transition: all 0.3s ease;
+  }
+
+  .filter-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+
+  .reset-btn {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    font-size: 15px;
+  }
+
+  .reset-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+  }
+
+  .results-count {
+    text-align: center;
+    color: #666;
+    font-size: 15px;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  /* Responsive za search/filter */
+  @media (max-width: 768px) {
+    .search-filter-section {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .search-box,
+    .filter-box {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .reset-btn {
+      width: 100%;
+    }
+  }
+}

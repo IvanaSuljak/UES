@@ -1,0 +1,18 @@
+<div class="register-container">
+  <h2>Registracija</h2>
+
+  <form (ngSubmit)="registerUser()">
+    <label>Ime i prezime</label>
+    <input type="text" [(ngModel)]="fullName" name="fullName" required />
+
+    <label>Email</label>
+    <input type="email" [(ngModel)]="email" name="email" required />
+
+    <label>Lozinka</label>
+    <input type="password" [(ngModel)]="password" name="password" required />
+
+    <button type="submit">Registruj se</button>
+  </form>
+
+  <p class="message">{{ message }}</p>
+</div>

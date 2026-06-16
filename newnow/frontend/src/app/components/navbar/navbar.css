@@ -1,0 +1,250 @@
+/* ============================================
+   🎨 NAVBAR
+   ============================================ */
+.navbar {
+  background: linear-gradient(135deg, #D9534F, #FF7043);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 18px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover {
+  transform: translateY(-3px);
+}
+
+.logo-icon {
+  font-size: 32px;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: 1px;
+}
+
+/* Auth buttons */
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.auth-btn {
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 25px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.auth-btn:hover {
+  background: white;
+  color: #D9534F;
+  transform: translateY(-2px);
+}
+
+.auth-btn.register {
+  background: white;
+  color: #D9534F;
+}
+
+.auth-btn.register:hover {
+  background: #F0AD4E;
+  color: white;
+  border-color: white;
+}
+
+/* ============================================
+   ✅ ISPRAVLJENI DROPDOWN
+   ============================================ */
+.dropdown {
+  position: relative;
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 2px solid white;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  min-width: 240px;
+  overflow: hidden;
+  animation: slideDown 0.25s ease;
+  z-index: 1000;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  color: #333;
+  text-decoration: none;
+  background: none;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  padding-left: 28px;
+}
+
+.logout-btn {
+  color: #D9534F;
+  font-weight: 800;
+}
+
+.logout-btn:hover {
+  background: #ffebee !important;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 8px 0;
+}
+
+/* ============================================
+   📱 MOBILE
+   ============================================ */
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: 2px solid white;
+  color: white;
+  font-size: 24px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mobile-menu {
+  display: none;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.mobile-menu a,
+.mobile-menu button {
+  display: block;
+  padding: 12px 20px;
+  color: #333;
+  text-decoration: none;
+  background: none;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.mobile-menu a:hover,
+.mobile-menu button:hover {
+  background: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+  .navbar-auth .auth-btn,
+  .navbar-auth .dropdown {
+    display: none;
+  }
+
+  .mobile-toggle {
+    display: block;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+
+  .navbar-container {
+    padding: 15px 20px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+
+  .logo-icon {
+    font-size: 24px;
+  }
+}

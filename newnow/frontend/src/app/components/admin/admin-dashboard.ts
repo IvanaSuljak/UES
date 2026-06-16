@@ -57,6 +57,7 @@ export class AdminDashboardComponent implements OnInit {
     description: '',
     imageUrl: ''
   };
+  customLocationType = '';
 
   // Dodela menadžera
   selectedLocation: Location | null = null;
@@ -148,15 +149,26 @@ export class AdminDashboardComponent implements OnInit {
         imageUrl: ''
       };
     }
+    this.customLocationType = '';
     this.showLocationForm = true;
   }
 
   closeLocationForm() {
     this.showLocationForm = false;
     this.editingLocation = null;
+    this.customLocationType = '';
   }
 
   saveLocation() {
+    const finalType = this.locationForm.type === 'Other'
+      ? this.customLocationType.trim()
+      : this.locationForm.type;
+
+    if (!finalType) {
+      alert('Izaberite ili unesite tip mesta.');
+      return;
+    }
+
     const url = this.editingLocation
       ? `${environment.apiUrl}/locations/${this.editingLocation.id}`
       : `${environment.apiUrl}/locations`;
@@ -164,7 +176,7 @@ export class AdminDashboardComponent implements OnInit {
     const method = this.editingLocation ? 'put' : 'post';
 
     this.http.request(method, url, {
-      body: this.locationForm,
+      body: { ...this.locationForm, type: finalType },
       headers: this.authService.getAuthHeaders()
     }).subscribe({
         next: () => {

@@ -28,7 +28,7 @@
           <h3 class="event-title">{{ event.title }}</h3>
           <p class="event-location">📍 {{ event.location?.name }}</p>
           <p class="event-time">🕐 {{ getEventTime(event.dateTime) }}</p>
-          <p class="event-price" *ngIf="event.price">💰 {{ event.price }} RSD</p>
+          <p class="event-price" *ngIf="event.price">💰 {{ event.price }} €</p>
           <a [routerLink]="['/locations', event.location?.id]" class="event-btn">
             Vidi detalje
           </a>

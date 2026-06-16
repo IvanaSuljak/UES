@@ -19,6 +19,7 @@
         <p>📍 {{ myLocation.address }}</p>
         <p>🏷️ {{ myLocation.type }}</p>
         <p>{{ myLocation.description }}</p>
+        <button class="btn-edit-location" (click)="openLocationEditForm()">✏️ Izmeni lokaciju</button>
       </div>
     </div>
 
@@ -99,12 +100,32 @@
       <h2>{{ editingEvent ? 'Izmeni događaj' : 'Dodaj događaj' }}</h2>
 
       <form (ngSubmit)="saveEvent()">
-        <input [(ngModel)]="eventForm.title" name="title" placeholder="Naziv događaja" required>
-        <textarea [(ngModel)]="eventForm.description" name="description" placeholder="Opis" required></textarea>
+        <label>Naziv događaja *</label>
+        <input [(ngModel)]="eventForm.title" name="title" placeholder="npr. Techno Noć" required>
+        <label>Opis</label>
+        <textarea [(ngModel)]="eventForm.description" name="description" placeholder="Kratak opis događaja"></textarea>
+        <label>Datum i vreme *</label>
         <input [(ngModel)]="eventForm.dateTime" name="dateTime" type="datetime-local" required>
-        <input [(ngModel)]="eventForm.price" name="price" type="number" placeholder="Cena (ostavi prazno za besplatno)">
-        <input [(ngModel)]="eventForm.type" name="type" placeholder="Tip (npr. Muzika, Festival)" required>
-        <input [(ngModel)]="eventForm.imageUrl" name="imageUrl" placeholder="URL slike" required>
+        <label>Cena ulaznice (€) — ostavi 0 za besplatan događaj</label>
+        <input [(ngModel)]="eventForm.price" name="price" type="number" min="0" placeholder="npr. 15">
+        <label>Tip događaja *</label>
+        <select [(ngModel)]="eventForm.type" name="type" required>
+          <option value="">-- Izaberi tip --</option>
+          <option value="Concert">Concert</option>
+          <option value="Festival">Festival</option>
+          <option value="DJ Set">DJ Set</option>
+          <option value="Stand-up">Stand-up</option>
+          <option value="Theater">Theater</option>
+          <option value="Sports">Sports</option>
+          <option value="Workshop">Workshop</option>
+          <option value="Other">Drugo (unesi ručno)</option>
+        </select>
+        <input *ngIf="eventForm.type === 'Other'"
+               [(ngModel)]="customEventType"
+               name="customEventType"
+               placeholder="Upiši tip događaja...">
+        <label>URL slike *</label>
+        <input [(ngModel)]="eventForm.imageUrl" name="imageUrl" placeholder="https://..." required>
 
         <label>
           <input [(ngModel)]="eventForm.isRegular" name="isRegular" type="checkbox">
@@ -114,6 +135,42 @@
         <div class="modal-actions">
           <button type="submit" class="btn-save">✅ Sačuvaj</button>
           <button type="button" class="btn-cancel" (click)="closeEventForm()">Otkaži</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL - Izmena lokacije (samo adresa, tip, opis) -->
+  <div class="modal-overlay" *ngIf="showLocationForm" (click)="closeLocationEditForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>✏️ Izmeni lokaciju</h2>
+      <p style="color:#888;font-size:13px;">Možete menjati adresu, tip i opis. Naziv i sliku može menjati samo administrator.</p>
+
+      <form (ngSubmit)="saveLocationEdit()">
+        <label>Adresa *</label>
+        <input [(ngModel)]="locationForm.address" name="address" placeholder="Adresa" required>
+        <label>Tip mesta *</label>
+        <select [(ngModel)]="locationForm.type" name="type" required>
+          <option value="">-- Izaberi tip --</option>
+          <option value="Club">Club</option>
+          <option value="Festival">Festival</option>
+          <option value="Hall">Hall</option>
+          <option value="Bar">Bar</option>
+          <option value="Theater">Theater</option>
+          <option value="Arena">Arena</option>
+          <option value="Outdoor">Outdoor</option>
+          <option value="Other">Drugo (unesi ručno)</option>
+        </select>
+        <input *ngIf="locationForm.type === 'Other'"
+               [(ngModel)]="customLocationType"
+               name="customLocationType"
+               placeholder="Upiši tip mesta...">
+        <label>Opis</label>
+        <textarea [(ngModel)]="locationForm.description" name="description" placeholder="Opis mesta"></textarea>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-save">✅ Sačuvaj</button>
+          <button type="button" class="btn-cancel" (click)="closeLocationEditForm()">Otkaži</button>
         </div>
       </form>
     </div>

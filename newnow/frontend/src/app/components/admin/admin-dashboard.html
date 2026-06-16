@@ -97,9 +97,23 @@
     <form (ngSubmit)="saveLocation()">
       <input [(ngModel)]="locationForm.name" name="name" placeholder="Naziv" required>
       <input [(ngModel)]="locationForm.address" name="address" placeholder="Adresa" required>
-      <input [(ngModel)]="locationForm.type" name="type" placeholder="Tip" required>
+      <select [(ngModel)]="locationForm.type" name="type" required>
+        <option value="">-- Izaberi tip mesta --</option>
+        <option value="Club">Club</option>
+        <option value="Festival">Festival</option>
+        <option value="Hall">Hall</option>
+        <option value="Bar">Bar</option>
+        <option value="Theater">Theater</option>
+        <option value="Arena">Arena</option>
+        <option value="Outdoor">Outdoor</option>
+        <option value="Other">Drugo (unesi ručno)</option>
+      </select>
+      <input *ngIf="locationForm.type === 'Other'"
+             [(ngModel)]="customLocationType"
+             name="customLocationType"
+             placeholder="Upiši tip mesta...">
       <textarea [(ngModel)]="locationForm.description" name="description" placeholder="Opis"></textarea>
-      <input [(ngModel)]="locationForm.imageUrl" name="imageUrl" placeholder="URL slike" required>
+      <input [(ngModel)]="locationForm.imageUrl" name="imageUrl" placeholder="URL slike (https://...)" required>
 
       <div class="modal-actions">
         <button type="submit" class="btn-save">💾 Sačuvaj</button>

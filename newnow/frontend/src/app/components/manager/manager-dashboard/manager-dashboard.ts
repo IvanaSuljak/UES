@@ -61,6 +61,10 @@ export class ManagerDashboardComponent implements OnInit {
   replyingToReview: Review | null = null;
   replyText = '';
 
+  showLocationForm = false;
+  locationForm = { address: '', type: '', description: '' };
+  customLocationType = '';
+
   eventForm = {
     title: '',
     description: '',
@@ -70,6 +74,7 @@ export class ManagerDashboardComponent implements OnInit {
     imageUrl: '',
     isRegular: false
   };
+  customEventType = '';
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -134,6 +139,56 @@ export class ManagerDashboardComponent implements OnInit {
       });
   }
 
+  // ==================== LOCATION MANAGEMENT (samo atributi) ====================
+
+  openLocationEditForm() {
+    if (!this.myLocation) return;
+    this.locationForm = {
+      address: this.myLocation.address,
+      type: this.myLocation.type,
+      description: this.myLocation.description
+    };
+    this.customLocationType = '';
+    this.showLocationForm = true;
+  }
+
+  closeLocationEditForm() {
+    this.showLocationForm = false;
+    this.customLocationType = '';
+  }
+
+  saveLocationEdit() {
+    if (!this.myLocation) return;
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    const finalType = this.locationForm.type === 'Other'
+      ? this.customLocationType.trim()
+      : this.locationForm.type;
+
+    if (!finalType) {
+      alert('Unesite tip mesta.');
+      return;
+    }
+
+    const payload = { ...this.locationForm, type: finalType };
+
+    this.http.put(
+      `${environment.apiUrl}/locations/${this.myLocation.id}`,
+      payload,
+      { headers }
+    ).subscribe({
+      next: (updated: any) => {
+        alert('Lokacija ažurirana ✅');
+        this.myLocation!.address = updated.address;
+        this.myLocation!.type = updated.type;
+        this.myLocation!.description = updated.description;
+        this.closeLocationEditForm();
+      },
+      error: (err) => alert(err.error?.error || 'Greška pri ažuriranju lokacije.')
+    });
+  }
+
   // ==================== EVENT MANAGEMENT ====================
 
   openEventForm(event?: Event) {
@@ -160,15 +215,26 @@ export class ManagerDashboardComponent implements OnInit {
         isRegular: false
       };
     }
+    this.customEventType = '';
     this.showEventForm = true;
   }
 
   closeEventForm() {
     this.showEventForm = false;
     this.editingEvent = null;
+    this.customEventType = '';
   }
 
   saveEvent() {
+    const finalType = this.eventForm.type === 'Other'
+      ? this.customEventType.trim()
+      : this.eventForm.type;
+
+    if (!finalType) {
+      alert('Izaberite ili unesite tip događaja.');
+      return;
+    }
+
     const url = this.editingEvent
       ? `${environment.apiUrl}/events/${this.editingEvent.id}`
       : `${environment.apiUrl}/events`;
@@ -180,6 +246,7 @@ export class ManagerDashboardComponent implements OnInit {
 
     const payload = {
       ...this.eventForm,
+      type: finalType,
       locationId: this.myLocation?.id
     };
 

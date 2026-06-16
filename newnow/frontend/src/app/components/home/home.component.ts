@@ -14,6 +14,7 @@ import { environment } from '../../../environments/environment';
 export class HomeComponent implements OnInit {
   todayEvents: any[] = [];
   topLocations: any[] = [];
+  recentReviews: any[] = [];
   loading: boolean = true;
 
   constructor(private http: HttpClient) {}
@@ -28,6 +29,7 @@ export class HomeComponent implements OnInit {
         console.log('🏠 Homepage data:', data);
         this.todayEvents = data.todayEvents || [];
         this.topLocations = data.topLocations || [];
+        this.recentReviews = data.recentReviews || [];
         this.loading = false;
       },
       error: (err) => {

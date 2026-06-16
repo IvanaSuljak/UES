@@ -109,6 +109,29 @@
   </div>
 </section>
 
+<!-- 💬 NAJSKORIJI UTISCI SA NAJPOPULARNIJEG MESTA (K8) -->
+<section class="recent-reviews-section" *ngIf="recentReviews.length > 0 && !loading">
+  <div class="container">
+    <h2 class="section-title">💬 Najnoviji utisci</h2>
+    <p class="section-subtitle">
+      Najskorija 3 utiska sa mest
+      <a [routerLink]="['/locations', recentReviews[0]?.locationId]" class="top-location-link">
+        {{ recentReviews[0]?.locationName }}
+      </a>
+    </p>
+    <div class="reviews-grid">
+      <div class="review-card-home" *ngFor="let review of recentReviews">
+        <div class="review-card-header">
+          <span class="review-user-name">👤 {{ review.userName || 'Korisnik' }}</span>
+          <span class="review-rating-badge">⭐ {{ (review.averageRating || 0).toFixed(1) }}</span>
+        </div>
+        <p class="review-card-comment">{{ review.comment }}</p>
+        <span class="review-card-date">{{ review.createdAt | date:'dd.MM.yyyy' }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 🔄 LOADING -->
 <div class="loading" *ngIf="loading">
   <div class="spinner"></div>

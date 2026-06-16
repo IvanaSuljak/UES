@@ -1,96 +1,139 @@
-<div class="profile-page">
+<div class="profile-page" *ngIf="!loading">
   <div class="profile-container">
+
     <!-- Header -->
     <div class="profile-header">
       <div class="profile-avatar">
-        👤
+        <img *ngIf="profile?.profileImage" [src]="profile.profileImage" alt="Avatar" class="avatar-img">
+        <span *ngIf="!profile?.profileImage" class="avatar-placeholder">👤</span>
       </div>
-      <h2 class="profile-title">Moj profil</h2>
-      <p class="profile-subtitle">Upravljajte svojim nalogom</p>
+      <h2 class="profile-title">{{ profile?.fullName }}</h2>
+      <p class="profile-role-badge"
+         [class.manager]="profile?.role === 'MANAGER'"
+         [class.admin]="profile?.role === 'ADMIN'">
+        {{ profile?.role }}
+      </p>
     </div>
 
-    <!-- Info cards -->
+    <!-- Podaci -->
     <div class="info-cards">
-      <div class="info-card">
-        <div class="info-icon">👤</div>
-        <div class="info-content">
-          <label>Ime i prezime</label>
-          <p>{{ userName }}</p>
-        </div>
-      </div>
-
       <div class="info-card">
         <div class="info-icon">📧</div>
         <div class="info-content">
-          <label>Email adresa</label>
-          <p>{{ userEmail }}</p>
+          <label>Email</label>
+          <p>{{ profile?.email }}</p>
         </div>
       </div>
-
       <div class="info-card">
-        <div class="info-icon">🎭</div>
+        <div class="info-icon">📍</div>
         <div class="info-content">
-          <label>Uloga</label>
-          <p class="role-badge" [class.manager]="userRole === 'MANAGER'" [class.admin]="userRole === 'ADMIN'">
-            {{ userRole }}
-          </p>
+          <label>Adresa</label>
+          <p>{{ profile?.address || '—' }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Password change section -->
-    <div class="password-section">
-      <button class="change-password-btn" (click)="togglePasswordForm()">
-        <span class="btn-icon">🔐</span>
-        {{ showPasswordForm ? 'Otkaži promenu lozinke' : 'Promeni lozinku' }}
+    <!-- Akcioni gumbi -->
+    <div class="action-buttons">
+      <button class="btn-edit" (click)="openEditForm()">✏️ Izmeni profil</button>
+      <button class="btn-password" (click)="togglePasswordForm()">
+        🔐 {{ showPasswordForm ? 'Otkaži promenu lozinke' : 'Promeni lozinku' }}
       </button>
+      <button class="logout-btn" (click)="logout()">🚪 Odjavi se</button>
+    </div>
 
-      <!-- Password form -->
-      <div class="password-form" *ngIf="showPasswordForm">
-        <h3>Promena lozinke</h3>
-
-        <div class="form-group">
-          <label>🔒 Trenutna lozinka</label>
-          <input
-            type="password"
-            [(ngModel)]="oldPassword"
-            placeholder="Unesite trenutnu lozinku"
-            class="form-input"
-          />
-        </div>
+    <!-- K10: Modal za izmenu profila -->
+    <div class="modal-overlay" *ngIf="showEditForm" (click)="closeEditForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h3>✏️ Izmena profila</h3>
 
         <div class="form-group">
-          <label>🔑 Nova lozinka</label>
-          <input
-            type="password"
-            [(ngModel)]="newPassword"
-            placeholder="Unesite novu lozinku"
-            class="form-input"
-          />
+          <label>Ime i prezime *</label>
+          <input type="text" [(ngModel)]="editForm.fullName" placeholder="Ime i prezime">
         </div>
-
         <div class="form-group">
-          <label>✅ Potvrdi novu lozinku</label>
-          <input
-            type="password"
-            [(ngModel)]="confirmPassword"
-            placeholder="Potvrdite novu lozinku"
-            class="form-input"
-          />
+          <label>Adresa</label>
+          <input type="text" [(ngModel)]="editForm.address" placeholder="Vaša adresa">
+        </div>
+        <div class="form-group">
+          <label>URL slike profila</label>
+          <input type="text" [(ngModel)]="editForm.profileImage" placeholder="https://...">
         </div>
 
-        <p class="error-message" *ngIf="passwordError">❌ {{ passwordError }}</p>
-        <p class="success-message" *ngIf="passwordSuccess">✅ {{ passwordSuccess }}</p>
+        <p class="error-msg" *ngIf="editError">❌ {{ editError }}</p>
+        <p class="success-msg" *ngIf="editSuccess">✅ {{ editSuccess }}</p>
 
-        <button class="submit-btn" (click)="changePassword()">
-          Potvrdi promenu
-        </button>
+        <div class="modal-actions">
+          <button class="btn-save" (click)="saveProfile()">Sačuvaj</button>
+          <button class="btn-cancel" (click)="closeEditForm()">Otkaži</button>
+        </div>
       </div>
     </div>
 
-    <!-- Logout button -->
-    <button class="logout-btn" (click)="logout()">
-      🚪 Odjavi se
-    </button>
+    <!-- K9: Promena lozinke -->
+    <div class="password-form-section" *ngIf="showPasswordForm">
+      <h3>🔐 Promena lozinke</h3>
+      <div class="form-group">
+        <label>Trenutna lozinka</label>
+        <input type="password" [(ngModel)]="oldPassword" placeholder="Trenutna lozinka" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>Nova lozinka</label>
+        <input type="password" [(ngModel)]="newPassword" placeholder="Nova lozinka" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>Potvrdi novu lozinku</label>
+        <input type="password" [(ngModel)]="confirmPassword" placeholder="Potvrda lozinke" class="form-input">
+      </div>
+      <p class="error-msg" *ngIf="passwordError">❌ {{ passwordError }}</p>
+      <p class="success-msg" *ngIf="passwordSuccess">✅ {{ passwordSuccess }}</p>
+      <button class="btn-save" (click)="changePassword()">Potvrdi promenu</button>
+    </div>
+
+    <!-- K10: Mesta na kojima je menadžer (samo za MANAGER) -->
+    <div class="managed-section" *ngIf="profile?.role === 'MANAGER' && profile?.managedLocations?.length > 0">
+      <h3>📍 Moja mesta</h3>
+      <div class="managed-locations-list">
+        <a *ngFor="let loc of profile.managedLocations"
+           [routerLink]="['/locations', loc.id]"
+           class="managed-location-card">
+          <img [src]="loc.imageUrl || 'assets/placeholder.jpg'" alt="{{ loc.name }}" class="loc-thumb">
+          <div>
+            <strong>{{ loc.name }}</strong>
+            <span>{{ loc.type }} · {{ loc.address }}</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- K10: Lista utisaka korisnika -->
+    <div class="reviews-section" *ngIf="profile?.reviews?.length > 0">
+      <h3>💬 Moji utisci ({{ profile.totalReviews }})</h3>
+      <div class="reviews-list">
+        <div class="review-item" *ngFor="let review of profile.reviews">
+          <div class="review-item-header">
+            <span class="review-location">📍 {{ review.location?.name || 'Lokacija' }}</span>
+            <span class="review-avg">⭐ {{ (review.averageRating || 0).toFixed(1) }}</span>
+            <span class="review-date">{{ getFormattedDate(review.createdAt) }}</span>
+          </div>
+          <div class="review-ratings" *ngIf="review.performanceRating || review.soundLightRating || review.spaceRating || review.overallRating">
+            <span *ngIf="review.performanceRating">🎤 {{ review.performanceRating }}/10</span>
+            <span *ngIf="review.soundLightRating">🔊 {{ review.soundLightRating }}/10</span>
+            <span *ngIf="review.spaceRating">🏛️ {{ review.spaceRating }}/10</span>
+            <span *ngIf="review.overallRating">🌟 {{ review.overallRating }}/10</span>
+          </div>
+          <p class="review-comment">{{ review.comment }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-reviews" *ngIf="profile?.reviews?.length === 0">
+      <p>Još niste ostavili nijedan utisak.</p>
+    </div>
+
   </div>
+</div>
+
+<div class="profile-loading" *ngIf="loading">
+  <p>⏳ Učitavanje profila...</p>
 </div>

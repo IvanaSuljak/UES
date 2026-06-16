@@ -81,11 +81,38 @@ public class HomeController {
                     .limit(4) // Top 4 lokacije
                     .collect(Collectors.toList());
 
+            // K8: najskorija 3 utiska sa najpopularnijeg mesta
+            List<Map<String, Object>> recentReviews = new java.util.ArrayList<>();
+            if (!topLocations.isEmpty()) {
+                Long topLocationId = (Long) topLocations.get(0).get("id");
+                List<com.example.newnow.model.LocationReview> recent =
+                        reviewService.findByLocationIdSortedByDateDesc(topLocationId)
+                                .stream()
+                                .filter(r -> !r.getIsDeleted() && !r.getIsHidden())
+                                .limit(3)
+                                .collect(Collectors.toList());
+
+                for (com.example.newnow.model.LocationReview r : recent) {
+                    Map<String, Object> rv = new HashMap<>();
+                    rv.put("id", r.getId());
+                    rv.put("comment", r.getComment());
+                    rv.put("averageRating", r.getAverageRating());
+                    rv.put("createdAt", r.getCreatedAt());
+                    rv.put("locationName", topLocations.get(0).get("name"));
+                    rv.put("locationId", topLocationId);
+                    if (r.getUser() != null) {
+                        rv.put("userName", r.getUser().getFullName());
+                    }
+                    recentReviews.add(rv);
+                }
+            }
+
             response.put("todayEvents", todayEvents);
             response.put("topLocations", topLocations);
+            response.put("recentReviews", recentReviews);
 
-            logger.info("🏠 Homepage data - Današnji događaji: {}, Top lokacije: {}",
-                    todayEvents.size(), topLocations.size());
+            logger.info("Homepage data - Dogadjaji: {}, Top lokacije: {}, Skoriji utisci: {}",
+                    todayEvents.size(), topLocations.size(), recentReviews.size());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

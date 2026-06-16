@@ -54,9 +54,27 @@
   <!-- ✅ FORMA ZA OSTAVLJANJE UTISKA - 4 KATEGORIJE (SVE OPCIONE) -->
   <div class="review-form-section">
     <h2>✍️ Ostavite svoj utisak</h2>
-    <p class="form-description">Sve ocene su opcione - ocenite samo ono što želite!</p>
+    <p class="form-description">Izaberite redovan događaj koji se već održao i ocenite iskustvo.</p>
 
     <form (ngSubmit)="submitReview()" class="review-form">
+
+      <!-- K5: izbor događaja -->
+      <div class="form-group">
+        <label for="eventSelect">🎪 Izaberite događaj *</label>
+        <div *ngIf="pastRegularEvents.length === 0" class="no-events-note">
+          Nema redovnih prošlih događaja za ovu lokaciju. Utisak možete ostaviti samo za redovne događaje koji su se već održali.
+        </div>
+        <select *ngIf="pastRegularEvents.length > 0"
+                id="eventSelect"
+                [(ngModel)]="newReview.eventId"
+                name="eventId"
+                required>
+          <option [ngValue]="null">-- Izaberite događaj --</option>
+          <option *ngFor="let ev of pastRegularEvents" [ngValue]="ev.id">
+            {{ ev.title }} — {{ ev.dateTime | date:'dd.MM.yyyy' }}
+          </option>
+        </select>
+      </div>
 
       <!-- 🎤 OCENA NASTUPA (1-10) -->
       <div class="form-group">
@@ -204,6 +222,12 @@
         </div>
 
         <p class="review-comment">{{ review.comment }}</p>
+        <p class="review-event-info" *ngIf="review.event">
+          🎪 Događaj: <strong>{{ review.event.title }}</strong>
+          <span *ngIf="review.eventOccurrenceCount > 0">
+            — održan {{ review.eventOccurrenceCount }}× do tada
+          </span>
+        </p>
       </div>
 
       <div class="no-reviews" *ngIf="reviews.length === 0">

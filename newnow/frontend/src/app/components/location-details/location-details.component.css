@@ -353,3 +353,24 @@
     width: 100%;
   }
 }
+
+/* K5 — event selektor i informacija na utisku */
+.no-events-note {
+  background: #fff3cd;
+  border-left: 4px solid #F0AD4E;
+  color: #856404;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.review-event-info {
+  font-size: 13px;
+  color: #888;
+  margin-top: 6px;
+}
+
+.review-event-info strong {
+  color: #555;
+}

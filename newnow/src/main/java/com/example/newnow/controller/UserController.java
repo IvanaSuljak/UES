@@ -141,9 +141,11 @@ public class UserController {
             if (payload.containsKey("fullName") && payload.get("fullName") != null) {
                 user.setFullName(payload.get("fullName"));
             }
-
             if (payload.containsKey("address")) {
                 user.setAddress(payload.get("address"));
+            }
+            if (payload.containsKey("profileImage")) {
+                user.setProfileImage(payload.get("profileImage"));
             }
 
             User updated = userService.save(user);

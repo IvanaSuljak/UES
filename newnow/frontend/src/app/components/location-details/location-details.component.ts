@@ -16,20 +16,19 @@ export class LocationDetailsComponent implements OnInit {
   location: any = null;
   upcomingEvents: any[] = [];
   reviews: any[] = [];
+  pastRegularEvents: any[] = [];  // K5: redovni prošli događaji za izbor
 
-  // 🟢 DODAJ OVO - omogući korišćenje Math u template-u
   Math = Math;
 
-  // ✅ IZMENJENO - Forma za review sa 4 kategorije ocena (sve opcione, 1-10)
   newReview = {
-    performanceRating: 0,    // 🎤 Ocena nastupa (1-10)
-    soundLightRating: 0,     // 🔊 Ocena zvuka i svetla (1-10)
-    spaceRating: 0,          // 🏛️ Ocena prostora (1-10)
-    overallRating: 0,        // 🌟 Ukupan utisak (1-10)
-    comment: ''              // 💬 Komentar (obavezan)
+    performanceRating: 0,
+    soundLightRating: 0,
+    spaceRating: 0,
+    overallRating: 0,
+    comment: '',
+    eventId: null as number | null
   };
 
-  // Sortiranje
   sortBy: string = 'date';
   sortOrder: string = 'desc';
 
@@ -42,6 +41,7 @@ export class LocationDetailsComponent implements OnInit {
     this.locationId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadLocationDetails();
     this.loadReviews();
+    this.loadPastRegularEvents();
   }
 
   loadLocationDetails(): void {
@@ -52,6 +52,20 @@ export class LocationDetailsComponent implements OnInit {
           this.upcomingEvents = data.upcomingEvents || [];
         },
         error: (err) => console.error('Greška pri učitavanju detalja:', err)
+      });
+  }
+
+  // K5: učitaj redovne prošle događaje za ovu lokaciju
+  loadPastRegularEvents(): void {
+    this.http.get<any[]>(`http://localhost:8080/api/events/byLocation/${this.locationId}`)
+      .subscribe({
+        next: (events) => {
+          const now = new Date();
+          this.pastRegularEvents = events.filter(e =>
+            e.isRegular === true && new Date(e.dateTime) < now
+          );
+        },
+        error: (err) => console.error('Greška pri učitavanju događaja:', err)
       });
   }
 
@@ -91,22 +105,20 @@ export class LocationDetailsComponent implements OnInit {
     });
 
     // ✅ Kreiraj payload - pošalji samo ocene > 0
+    if (!this.newReview.eventId) {
+      alert('Morate izabrati događaj za koji ostavljate utisak!');
+      return;
+    }
+
     const payload: any = {
-      comment: this.newReview.comment
+      comment: this.newReview.comment,
+      eventId: this.newReview.eventId
     };
 
-    if (this.newReview.performanceRating > 0) {
-      payload.performanceRating = this.newReview.performanceRating;
-    }
-    if (this.newReview.soundLightRating > 0) {
-      payload.soundLightRating = this.newReview.soundLightRating;
-    }
-    if (this.newReview.spaceRating > 0) {
-      payload.spaceRating = this.newReview.spaceRating;
-    }
-    if (this.newReview.overallRating > 0) {
-      payload.overallRating = this.newReview.overallRating;
-    }
+    if (this.newReview.performanceRating > 0) payload.performanceRating = this.newReview.performanceRating;
+    if (this.newReview.soundLightRating > 0)  payload.soundLightRating  = this.newReview.soundLightRating;
+    if (this.newReview.spaceRating > 0)       payload.spaceRating       = this.newReview.spaceRating;
+    if (this.newReview.overallRating > 0)     payload.overallRating     = this.newReview.overallRating;
 
     console.log('📤 Šaljem payload:', payload); // ✅ Debug
 
@@ -123,7 +135,8 @@ export class LocationDetailsComponent implements OnInit {
           soundLightRating: 0,
           spaceRating: 0,
           overallRating: 0,
-          comment: ''
+          comment: '',
+          eventId: null
         };
         this.loadLocationDetails();
         this.loadReviews(this.sortBy, this.sortOrder);

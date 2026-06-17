@@ -1,0 +1,147 @@
+<div class="analytics-page">
+  <h1>📊 Analitika mesta</h1>
+
+  <!-- Selektor lokacije + perioda -->
+  <div class="controls-card">
+    <div class="control-group" *ngIf="managedLocations.length > 0">
+      <label>Lokacija</label>
+      <select [(ngModel)]="selectedLocationId">
+        <option *ngFor="let loc of managedLocations" [ngValue]="loc.id">{{ loc.name }}</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Period</label>
+      <div class="preset-btns">
+        <button [class.active]="preset === 'week'"  (click)="applyPreset('week')">Nedeljno</button>
+        <button [class.active]="preset === 'month'" (click)="applyPreset('month')">Mesečno</button>
+        <button [class.active]="preset === 'year'"  (click)="applyPreset('year')">Godišnje</button>
+        <button [class.active]="preset === 'custom'" (click)="applyPreset('custom')">Prilagođeno</button>
+      </div>
+    </div>
+
+    <div class="date-range">
+      <div class="control-group">
+        <label>Od</label>
+        <input type="date" [(ngModel)]="startDate">
+      </div>
+      <div class="control-group">
+        <label>Do</label>
+        <input type="date" [(ngModel)]="endDate">
+      </div>
+    </div>
+
+    <button class="btn-load" (click)="loadAnalytics()">Prikaži analitiku</button>
+    <p class="error-msg" *ngIf="error">❌ {{ error }}</p>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">⏳ Učitavanje...</div>
+
+  <!-- Rezultati -->
+  <div *ngIf="analytics && !loading">
+
+    <!-- KPI kartice -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-value">{{ analytics.totalEvents }}</div>
+        <div class="kpi-label">Ukupno događaja</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-value">{{ analytics.regularEvents }}</div>
+        <div class="kpi-label">Redovnih</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-value">{{ analytics.irregularEvents }}</div>
+        <div class="kpi-label">Neredovnih</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-value">{{ analytics.freeEvents }}</div>
+        <div class="kpi-label">Besplatnih</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-value">{{ analytics.paidEvents }}</div>
+        <div class="kpi-label">Plaćenih</div>
+      </div>
+      <div class="kpi-card yellow">
+        <div class="kpi-value">{{ analytics.totalReviews }}</div>
+        <div class="kpi-label">Utisaka</div>
+      </div>
+      <div class="kpi-card indigo">
+        <div class="kpi-value">{{ analytics.avgRating }}</div>
+        <div class="kpi-label">Prosečna ocena</div>
+      </div>
+    </div>
+
+    <!-- Grafici -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Redovni vs Neredovni</h3>
+        <canvas #pieEventsCanvas></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Besplatni vs Plaćeni</h3>
+        <canvas #piePayCanvas></canvas>
+      </div>
+      <div class="chart-card wide">
+        <h3>Događaji po mesecu</h3>
+        <canvas #barMonthCanvas></canvas>
+      </div>
+      <div class="chart-card" *ngIf="analytics.avgPerformance || analytics.avgSound || analytics.avgSpace || analytics.avgOverall">
+        <h3>Prosečne ocene po kategorijama</h3>
+        <canvas #radarCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Top događaji -->
+    <div class="table-card" *ngIf="analytics.topEvents?.length > 0">
+      <h3>🏆 Top događaji (po učestalosti)</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Naziv</th><th>Pojavljivanja</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ev of analytics.topEvents; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ ev.title }}</td>
+            <td>{{ ev.occurrences }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Top lokacije -->
+    <div class="table-card" *ngIf="analytics.topLocations?.length > 0">
+      <h3>⭐ Top 5 mesta (po oceni)</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Naziv</th><th>Prosečna ocena</th><th>Utisaka</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let loc of analytics.topLocations; let i = index"
+              [class.highlight]="loc.id === selectedLocationId">
+            <td>{{ i + 1 }}</td>
+            <td>{{ loc.name }}</td>
+            <td>⭐ {{ loc.averageRating | number:'1.1-1' }}</td>
+            <td>{{ loc.totalReviews }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Najskoriji utisci -->
+    <div class="recent-reviews" *ngIf="analytics.recentReviews?.length > 0">
+      <h3>💬 Najskorija 3 utiska (u periodu)</h3>
+      <div class="review-cards">
+        <div class="review-mini-card" *ngFor="let r of analytics.recentReviews">
+          <div class="review-mini-header">
+            <span>👤 {{ r.userName }}</span>
+            <span class="badge-rating">⭐ {{ r.averageRating | number:'1.1-1' }}</span>
+          </div>
+          <p>{{ r.comment }}</p>
+          <small>{{ r.createdAt | date:'dd.MM.yyyy' }}</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

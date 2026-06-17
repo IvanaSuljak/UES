@@ -228,6 +228,44 @@
             — održan {{ review.eventOccurrenceCount }}× do tada
           </span>
         </p>
+
+        <!-- M3: dugme za komentare -->
+        <div class="review-comments-toggle">
+          <button class="btn-comments" (click)="toggleComments(review.id)">
+            💬 {{ commentsMap[review.id] !== undefined ? 'Sakrij komentare' : 'Prikaži komentare' }}
+          </button>
+          <button class="btn-reply-review" (click)="openReply(review.id, null)">
+            ↩ Odgovori
+          </button>
+        </div>
+
+        <!-- M3: thread komentara -->
+        <div class="comments-thread" *ngIf="commentsMap[review.id]">
+          <div class="comment-item" *ngFor="let c of commentsMap[review.id]">
+            <div class="comment-header">
+              <strong>{{ c.user?.fullName }}</strong>
+              <span class="comment-date">{{ c.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+            </div>
+            <p class="comment-text">{{ c.text }}</p>
+            <button class="btn-reply-comment" (click)="openReply(review.id, c.id)">↩ Odgovori</button>
+          </div>
+
+          <div *ngIf="commentsMap[review.id].length === 0" class="no-comments">
+            Nema komentara — budite prvi!
+          </div>
+        </div>
+
+        <!-- M3: forma za reply -->
+        <div class="reply-form" *ngIf="replyingToReviewId === review.id">
+          <textarea [(ngModel)]="replyText"
+                    name="replyText_{{ review.id }}"
+                    placeholder="Unesite odgovor..."
+                    rows="2"></textarea>
+          <div class="reply-actions">
+            <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
+            <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
+          </div>
+        </div>
       </div>
 
       <div class="no-reviews" *ngIf="reviews.length === 0">

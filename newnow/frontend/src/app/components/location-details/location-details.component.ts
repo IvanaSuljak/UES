@@ -16,7 +16,12 @@ export class LocationDetailsComponent implements OnInit {
   location: any = null;
   upcomingEvents: any[] = [];
   reviews: any[] = [];
-  pastRegularEvents: any[] = [];  // K5: redovni prošli događaji za izbor
+  pastRegularEvents: any[] = [];
+  // M3: komentari po review id-u
+  commentsMap: { [reviewId: number]: any[] } = {};
+  replyingToCommentId: number | null = null;
+  replyingToReviewId: number | null = null;
+  replyText = '';
 
   Math = Math;
 
@@ -94,6 +99,11 @@ export class LocationDetailsComponent implements OnInit {
       return;
     }
 
+    if (!this.newReview.eventId) {
+      alert('Morate izabrati događaj za koji ostavljate utisak!');
+      return;
+    }
+
     if (!this.newReview.comment.trim()) {
       alert('Molimo unesite komentar!');
       return;
@@ -105,11 +115,6 @@ export class LocationDetailsComponent implements OnInit {
     });
 
     // ✅ Kreiraj payload - pošalji samo ocene > 0
-    if (!this.newReview.eventId) {
-      alert('Morate izabrati događaj za koji ostavljate utisak!');
-      return;
-    }
-
     const payload: any = {
       comment: this.newReview.comment,
       eventId: this.newReview.eventId
@@ -156,6 +161,55 @@ export class LocationDetailsComponent implements OnInit {
 
   onSortChange(): void {
     this.loadReviews(this.sortBy, this.sortOrder);
+  }
+
+  // M3: učitaj komentare za jedan review
+  loadComments(reviewId: number): void {
+    this.http.get<any[]>(`http://localhost:8080/api/comments/review/${reviewId}`)
+      .subscribe({
+        next: (comments) => { this.commentsMap[reviewId] = comments; },
+        error: (err) => console.error('Greška komentari:', err)
+      });
+  }
+
+  toggleComments(reviewId: number): void {
+    if (this.commentsMap[reviewId] !== undefined) {
+      // već učitani — samo toggle prikaz (brisanjem iz mape skrivamo)
+      delete this.commentsMap[reviewId];
+    } else {
+      this.loadComments(reviewId);
+    }
+  }
+
+  openReply(reviewId: number, commentId: number | null): void {
+    this.replyingToReviewId = reviewId;
+    this.replyingToCommentId = commentId;
+    this.replyText = '';
+  }
+
+  cancelReply(): void {
+    this.replyingToReviewId = null;
+    this.replyingToCommentId = null;
+    this.replyText = '';
+  }
+
+  submitReply(): void {
+    if (!this.replyText.trim()) return;
+    const token = localStorage.getItem('token');
+    if (!token) { alert('Morate biti ulogovani!'); return; }
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    const url = this.replyingToCommentId
+      ? `http://localhost:8080/api/comments/${this.replyingToCommentId}/reply`
+      : `http://localhost:8080/api/comments/review/${this.replyingToReviewId}`;
+
+    this.http.post(url, { text: this.replyText }, { headers }).subscribe({
+      next: () => {
+        this.loadComments(this.replyingToReviewId!);
+        this.cancelReply();
+      },
+      error: (err) => alert(err.error?.error || 'Greška pri slanju odgovora')
+    });
   }
 
   getRatingStars(rating: number): string {

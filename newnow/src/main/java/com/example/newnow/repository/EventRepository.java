@@ -38,4 +38,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     // Brojim koliko puta se dogadjaj desio pre nekog datuma
     @Query("SELECT COUNT(e) FROM Event e WHERE e.id = :eventId AND e.dateTime < :currentDateTime")
     Long countPastOccurrences(@Param("eventId") Long eventId, @Param("currentDateTime") LocalDateTime currentDateTime);
+
+    // M4 — eventi za lokaciju u periodu
+    @Query("SELECT e FROM Event e WHERE e.location.id = :locationId AND e.dateTime >= :start AND e.dateTime <= :end")
+    List<Event> findByLocationIdAndPeriod(@Param("locationId") Long locationId,
+                                          @Param("start") LocalDateTime start,
+                                          @Param("end") LocalDateTime end);
 }

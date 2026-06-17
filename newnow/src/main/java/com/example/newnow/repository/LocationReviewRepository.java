@@ -40,4 +40,10 @@ public interface LocationReviewRepository extends JpaRepository<LocationReview, 
     // Svi utisci jednog korisnika
     @Query("SELECT lr FROM LocationReview lr WHERE lr.user.id = :userId AND lr.isDeleted = false")
     List<LocationReview> findByUserId(@Param("userId") Long userId);
+
+    // M4 — utisci za lokaciju u periodu
+    @Query("SELECT lr FROM LocationReview lr WHERE lr.location.id = :locationId AND lr.createdAt >= :start AND lr.createdAt <= :end AND lr.isDeleted = false")
+    List<LocationReview> findByLocationIdAndPeriod(@Param("locationId") Long locationId,
+                                                    @Param("start") java.time.LocalDateTime start,
+                                                    @Param("end") java.time.LocalDateTime end);
 }

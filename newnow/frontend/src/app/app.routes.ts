@@ -8,6 +8,7 @@ import { ProfileComponent } from './components/profile/profile';
 import { AdminDashboardComponent } from './components/admin/admin-dashboard';
 import { ManagerDashboardComponent } from './components/manager/manager-dashboard/manager-dashboard';
 import { LocationDetailsComponent } from './components/location-details/location-details.component';
+import { AnalyticsComponent } from './components/analytics/analytics.component';
 import { adminGuard, authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -21,5 +22,6 @@ export const routes: Routes = [
   { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'manager-dashboard', component: ManagerDashboardComponent, canActivate: [authGuard] },
   { path: 'manager', component: ManagerDashboardComponent, canActivate: [authGuard] },
+  { path: 'analytics', component: AnalyticsComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];

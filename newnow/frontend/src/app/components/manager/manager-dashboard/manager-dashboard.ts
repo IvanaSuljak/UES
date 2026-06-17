@@ -306,9 +306,10 @@ export class ManagerDashboardComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
+    // M3 — manager odgovara na utisak (POST /api/comments/review/{reviewId})
     this.http.post(
-      `${environment.apiUrl}/reviews/${this.replyingToReview.id}/reply`,
-      { reply: this.replyText },
+      `${environment.apiUrl}/comments/review/${this.replyingToReview.id}`,
+      { text: this.replyText },
       { headers }
     ).subscribe({
       next: () => {
@@ -318,7 +319,7 @@ export class ManagerDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Greška:', err);
-        alert('Greška pri slanju odgovora: ' + (err.error?.message || err.message));
+        alert('Greška pri slanju odgovora: ' + (err.error?.error || err.message));
       }
     });
   }

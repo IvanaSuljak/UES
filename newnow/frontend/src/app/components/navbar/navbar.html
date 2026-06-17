@@ -24,6 +24,9 @@
             <a *ngIf="userRole === 'MANAGER'" routerLink="/manager" (click)="closeDropdown()" class="dropdown-item">
               🏢 Manager Dashboard
             </a>
+            <a *ngIf="userRole === 'MANAGER'" routerLink="/analytics" (click)="closeDropdown()" class="dropdown-item">
+              📊 Analitika
+            </a>
             <a *ngIf="userRole === 'ADMIN'" routerLink="/admin" (click)="closeDropdown()" class="dropdown-item">
               ⚙️ Admin panel
             </a>
@@ -52,6 +55,7 @@
     <ng-container *ngIf="isAuthenticated; else mobileGuest">
       <a routerLink="/profile" (click)="toggleMobileMenu()">Profil</a>
       <a *ngIf="userRole === 'MANAGER'" routerLink="/manager" (click)="toggleMobileMenu()">Manager Dashboard</a>
+      <a *ngIf="userRole === 'MANAGER'" routerLink="/analytics" (click)="toggleMobileMenu()">Analitika</a>
       <a *ngIf="userRole === 'ADMIN'" routerLink="/admin" (click)="toggleMobileMenu()">Admin</a>
       <button (click)="logout()">Odjavi se</button>
     </ng-container>

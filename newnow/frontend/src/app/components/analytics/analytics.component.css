@@ -1,0 +1,155 @@
+.analytics-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+h1 { font-size: 28px; font-weight: 900; margin-bottom: 24px; color: #222; }
+
+.controls-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 32px;
+}
+
+.control-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+.control-group label { font-size: 13px; font-weight: 700; color: #555; }
+.control-group select, .control-group input {
+  padding: 10px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.preset-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.preset-btns button {
+  padding: 8px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.preset-btns button.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+.date-range { display: flex; gap: 12px; }
+
+.btn-load {
+  padding: 12px 28px;
+  background: #D9534F;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-load:hover { background: #c9302c; }
+
+.error-msg { color: #c0392b; font-size: 14px; }
+.loading-state { text-align: center; padding: 60px; font-size: 18px; color: #888; }
+
+/* KPI */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  border-radius: 14px;
+  padding: 20px 16px;
+  text-align: center;
+  color: white;
+}
+.kpi-card.blue    { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.kpi-card.purple  { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.kpi-card.orange  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.kpi-card.green   { background: linear-gradient(135deg, #10b981, #059669); }
+.kpi-card.red     { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.kpi-card.yellow  { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.kpi-card.indigo  { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+.kpi-value { font-size: 32px; font-weight: 900; }
+.kpi-label { font-size: 12px; opacity: 0.9; margin-top: 4px; }
+
+/* Charts */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+.chart-card.wide { grid-column: 1 / -1; }
+.chart-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: #333; }
+
+/* Tables */
+.table-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  margin-bottom: 24px;
+}
+.table-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: #333; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 700; color: #555; }
+td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+tr.highlight td { background: #ede9fe; font-weight: 700; }
+
+/* Recent reviews */
+.recent-reviews {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  margin-bottom: 24px;
+}
+.recent-reviews h3 { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: #333; }
+
+.review-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+.review-mini-card {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 18px;
+  border-left: 5px solid #6366f1;
+}
+.review-mini-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.badge-rating {
+  background: #f59e0b;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.review-mini-card p { font-size: 14px; color: #555; margin: 0 0 6px; }
+.review-mini-card small { font-size: 12px; color: #aaa; }

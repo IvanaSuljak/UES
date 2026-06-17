@@ -46,6 +46,10 @@ public class SecurityConfig {
                         // A1 — samo admin obrađuje zahteve
                         .requestMatchers("/api/account-requests/**").hasRole("ADMIN")
 
+                        // S1 — pretraga i PDF download su javni
+                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search/locations").permitAll()
+
                         // Javni read endpointi (ostaju otvoreni do ocene 7)
                         .requestMatchers(
                                 "/api/locations/**",

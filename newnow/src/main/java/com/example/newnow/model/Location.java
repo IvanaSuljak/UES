@@ -34,6 +34,10 @@ public class Location {
 
     private String imageUrl;
 
+    // MinIO putanja do PDF fajla sa opisom mesta
+    @Column(nullable = true)
+    private String pdfFileName;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "manager_id")
     @JsonIgnoreProperties({"password", "email", "enabled"})

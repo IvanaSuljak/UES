@@ -16,6 +16,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.nav-link {
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.nav-link:hover { background: rgba(255,255,255,0.15); color: white; }
+.search-link {
+  background: rgba(255,255,255,0.2);
+  font-weight: 700;
 }
 
 /* Logo */

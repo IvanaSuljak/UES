@@ -1,0 +1,209 @@
+<div class="search-container">
+  <div class="search-header">
+    <h1>🔍 Napredna pretraga mesta</h1>
+    <p class="subtitle">Pretražujte po nazivu, opisu, PDF sadržaju, ocjenama i broju utisaka</p>
+  </div>
+
+  <!-- Help box -->
+  <div class="help-box" *ngIf="showHelp">
+    <h4>💡 Sintaksa pretrage</h4>
+    <ul>
+      <li><strong>"festival muzike"</strong> — tačna fraza (PhraseQuery)</li>
+      <li><strong>Exit*</strong> — pretraga po prefiksu (PrefixQuery)</li>
+      <li><strong>~festival</strong> — fuzzy pretraga sa greškom u kucanju (FuzzyQuery)</li>
+      <li><strong>exit festival</strong> — obična pretraga (MatchQuery)</li>
+    </ul>
+  </div>
+  <button class="btn-help" (click)="showHelp = !showHelp">
+    {{ showHelp ? '✖ Sakrij pomoć' : '❓ Pomoć za pretragu' }}
+  </button>
+
+  <!-- Forma za pretragu -->
+  <div class="search-form-card">
+    <div class="form-row">
+      <!-- Naziv -->
+      <div class="form-group">
+        <label>🏷️ Naziv mesta</label>
+        <input type="text" [(ngModel)]="params.name" name="name"
+               placeholder="npr. Exit* ili &quot;Exit Festival&quot; ili ~Exittt">
+      </div>
+      <!-- Opis -->
+      <div class="form-group">
+        <label>📝 Opis mesta</label>
+        <input type="text" [(ngModel)]="params.description" name="description"
+               placeholder="npr. festival ili ~muzika">
+      </div>
+      <!-- PDF -->
+      <div class="form-group">
+        <label>📄 Sadržaj PDF dokumenta</label>
+        <input type="text" [(ngModel)]="params.pdf" name="pdf"
+               placeholder="npr. istorija ili &quot;Petrovaradinska tvrđava&quot;">
+      </div>
+    </div>
+
+    <!-- Operator -->
+    <div class="operator-row">
+      <label>Operator između polja:</label>
+      <div class="operator-buttons">
+        <button class="btn-op" [class.active]="params.operator === 'AND'"
+                (click)="params.operator = 'AND'">AND</button>
+        <button class="btn-op" [class.active]="params.operator === 'OR'"
+                (click)="params.operator = 'OR'">OR</button>
+      </div>
+    </div>
+
+    <!-- Opseg broja recenzija -->
+    <div class="form-row">
+      <div class="form-group half">
+        <label>⭐ Minimalan broj utisaka</label>
+        <input type="number" [(ngModel)]="params.reviewsMin" name="reviewsMin" min="0" placeholder="od">
+      </div>
+      <div class="form-group half">
+        <label>⭐ Maksimalan broj utisaka</label>
+        <input type="number" [(ngModel)]="params.reviewsMax" name="reviewsMax" min="0" placeholder="do">
+      </div>
+      <div class="form-group half">
+        <label>🌟 Prosječna ocjena od</label>
+        <input type="number" [(ngModel)]="params.ratingMin" name="ratingMin" min="0" max="10" step="0.1" placeholder="od">
+      </div>
+      <div class="form-group half">
+        <label>🌟 Prosječna ocjena do</label>
+        <input type="number" [(ngModel)]="params.ratingMax" name="ratingMax" min="0" max="10" step="0.1" placeholder="do">
+      </div>
+    </div>
+
+    <!-- Toggle naprednih filtera -->
+    <button class="btn-toggle-ratings" (click)="showRatingFilters = !showRatingFilters">
+      {{ showRatingFilters ? '▲ Sakrij filtre po kategorijama' : '▼ Prikaži filtre po kategorijama ocena' }}
+    </button>
+
+    <!-- Filteri po kategorijama ocena -->
+    <div class="rating-filters" *ngIf="showRatingFilters">
+      <div class="form-row">
+        <div class="form-group half">
+          <label>🎤 Nastup od</label>
+          <input type="number" [(ngModel)]="params.perfMin" name="perfMin" min="0" max="10" step="0.1" placeholder="od">
+        </div>
+        <div class="form-group half">
+          <label>🎤 Nastup do</label>
+          <input type="number" [(ngModel)]="params.perfMax" name="perfMax" min="0" max="10" step="0.1" placeholder="do">
+        </div>
+        <div class="form-group half">
+          <label>🔊 Zvuk i svetlo od</label>
+          <input type="number" [(ngModel)]="params.soundMin" name="soundMin" min="0" max="10" step="0.1" placeholder="od">
+        </div>
+        <div class="form-group half">
+          <label>🔊 Zvuk i svetlo do</label>
+          <input type="number" [(ngModel)]="params.soundMax" name="soundMax" min="0" max="10" step="0.1" placeholder="do">
+        </div>
+        <div class="form-group half">
+          <label>🏛️ Prostor od</label>
+          <input type="number" [(ngModel)]="params.spaceMin" name="spaceMin" min="0" max="10" step="0.1" placeholder="od">
+        </div>
+        <div class="form-group half">
+          <label>🏛️ Prostor do</label>
+          <input type="number" [(ngModel)]="params.spaceMax" name="spaceMax" min="0" max="10" step="0.1" placeholder="do">
+        </div>
+        <div class="form-group half">
+          <label>🌟 Ukupan utisak od</label>
+          <input type="number" [(ngModel)]="params.overallMin" name="overallMin" min="0" max="10" step="0.1" placeholder="od">
+        </div>
+        <div class="form-group half">
+          <label>🌟 Ukupan utisak do</label>
+          <input type="number" [(ngModel)]="params.overallMax" name="overallMax" min="0" max="10" step="0.1" placeholder="do">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sortiranje -->
+    <div class="sort-row">
+      <label>Sortiraj po:</label>
+      <select [(ngModel)]="params.sortBy" name="sortBy">
+        <option value="name">Nazivu</option>
+        <option value="rating">Prosječnoj ocjeni</option>
+        <option value="reviews">Broju utisaka</option>
+      </select>
+      <select [(ngModel)]="params.sortOrder" name="sortOrder">
+        <option value="asc">Rastuće</option>
+        <option value="desc">Opadajuće</option>
+      </select>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-search" (click)="search()" [disabled]="loading">
+        {{ loading ? '🔄 Pretražujem...' : '🔍 Pretraži' }}
+      </button>
+      <button class="btn-clear" (click)="clearAll()">✖ Resetuj</button>
+    </div>
+  </div>
+
+  <!-- Greška -->
+  <div class="error-box" *ngIf="errorMsg">
+    ⚠️ {{ errorMsg }}
+  </div>
+
+  <!-- Rezultati -->
+  <div class="results-section" *ngIf="searched">
+    <h2>Pronađeno {{ results.length }} {{ results.length === 1 ? 'mjesto' : 'mjesta' }}</h2>
+
+    <div class="no-results" *ngIf="results.length === 0 && !errorMsg">
+      <p>Nema rezultata za zadate kriterijume. Pokušajte sa drugačijim parametrima.</p>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card" *ngFor="let r of results">
+        <div class="result-image-wrap">
+          <img [src]="r.imageUrl" [alt]="r.name" class="result-img"
+               onerror="this.src='https://placehold.co/300x180/333/fff?text=Nema+slike'">
+        </div>
+
+        <div class="result-body">
+          <div class="result-name-row">
+            <h3 [innerHTML]="getHighlight(r, 'name') || r.name"></h3>
+            <span class="rating-badge">⭐ {{ r.averageRating?.toFixed(1) }}</span>
+          </div>
+
+          <p class="result-address">📍 {{ r.address }}</p>
+          <p class="result-type">🏷️ {{ r.type }}</p>
+          <p class="result-reviews">💬 {{ r.totalReviews }} utisaka</p>
+
+          <!-- Highlight opis -->
+          <div class="highlight-box" *ngIf="getHighlight(r, 'description')">
+            <strong>📝 Opis:</strong>
+            <span [innerHTML]="getHighlight(r, 'description')"></span>
+          </div>
+
+          <!-- Highlight PDF sadrzaj -->
+          <div class="highlight-box pdf-highlight" *ngIf="getHighlight(r, 'pdfContent')">
+            <strong>📄 Iz PDF dokumenta:</strong>
+            <span [innerHTML]="getHighlight(r, 'pdfContent')"></span>
+          </div>
+
+          <div class="result-actions">
+            <a [routerLink]="['/locations', r.id]" class="btn-visit">Posjeti mjesto</a>
+            <button class="btn-similar" (click)="loadSimilar(r.id, $event)">🔗 Slična mjesta</button>
+            <button class="btn-pdf" *ngIf="r.pdfFileName" (click)="downloadPdf(r.id, $event)">
+              📥 Preuzmi PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slicna mesta (MLT) -->
+  <div class="similar-section" *ngIf="similarResults.length > 0">
+    <h2>🔗 Slična mjesta</h2>
+    <div class="similar-grid">
+      <div class="similar-card" *ngFor="let s of similarResults">
+        <img [src]="s.imageUrl" [alt]="s.name" onerror="this.src='https://placehold.co/200x120/333/fff?text=Nema'">
+        <div>
+          <h4>{{ s.name }}</h4>
+          <p>📍 {{ s.address }}</p>
+          <p>⭐ {{ s.averageRating?.toFixed(1) }}</p>
+          <a [routerLink]="['/locations', s.id]" class="btn-visit-small">Posjeti</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

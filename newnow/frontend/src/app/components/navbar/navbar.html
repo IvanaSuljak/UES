@@ -6,6 +6,14 @@
       <span class="logo-text">Discover Barcelona</span>
     </a>
 
+    <!-- Navigacioni linkovi -->
+    <nav class="navbar-links">
+      <a routerLink="/" class="nav-link">🏠 Početna</a>
+      <a routerLink="/locations" class="nav-link">📍 Mjesta</a>
+      <a routerLink="/events" class="nav-link">🎉 Događaji</a>
+      <a routerLink="/search" class="nav-link search-link">🔍 Pretraži</a>
+    </nav>
+
     <!-- 🚀 Desna strana -->
     <div class="navbar-auth">
       <ng-container *ngIf="isAuthenticated; else guest">

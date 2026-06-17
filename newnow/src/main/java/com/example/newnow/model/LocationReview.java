@@ -40,9 +40,9 @@ public class LocationReview {
     @Column(nullable = false)
     private Boolean isDeleted = false;
 
-    // 🟢 VEZA SA DOGAĐAJEM (za ocenu 8 - obavezno) - ✅ ISPRAVLJENO
+    // event može biti null za stare utiske koji su uneseni prije Grade 8
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "event_id", nullable = false)
+    @JoinColumn(name = "event_id", nullable = true)
     @JsonIgnoreProperties({"location"})
     private Event event;
 
@@ -56,8 +56,8 @@ public class LocationReview {
     @JsonIgnoreProperties({"events", "images", "manager"})
     private Location location;
 
-    //Koliko puta se dogadj desio u trenutku pisanja recenzije
-    @Column(nullable = false)
+    //Koliko puta se dogadj desio u trenutku pisanja recenzije (null za stare utiske)
+    @Column(nullable = true)
     private Integer eventOccurrenceCount;
 
     @PrePersist

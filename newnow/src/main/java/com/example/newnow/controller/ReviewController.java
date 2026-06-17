@@ -176,11 +176,8 @@ public class ReviewController {
                 ));
             }
 
-            LocationReview hidden = reviewService.hideReview(id);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Utisak sakriven ✅",
-                    "review", hidden
-            ));
+            reviewService.hideReview(id);
+            return ResponseEntity.ok(Map.of("message", "Utisak sakriven ✅"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -208,11 +205,8 @@ public class ReviewController {
                 ));
             }
 
-            LocationReview deleted = reviewService.deleteReview(id);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Utisak uklonjen ✅ (ocena se ne računa)",
-                    "review", deleted
-            ));
+            reviewService.deleteReview(id);
+            return ResponseEntity.ok(Map.of("message", "Utisak uklonjen ✅ (ocena se ne računa)"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -240,11 +234,8 @@ public class ReviewController {
                 ));
             }
 
-            LocationReview unhidden = reviewService.unhideReview(id);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Utisak prikazan ✅",
-                    "review", unhidden
-            ));
+            reviewService.unhideReview(id);
+            return ResponseEntity.ok(Map.of("message", "Utisak prikazan ✅"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }

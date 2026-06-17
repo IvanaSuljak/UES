@@ -474,3 +474,24 @@
 .review-event-info strong {
   color: #555;
 }
+
+/* Nested replies */
+.comment-replies {
+  margin-left: 20px;
+  border-left: 3px solid #e0e7ff;
+  padding-left: 12px;
+  margin-top: 6px;
+}
+
+.comment-item-reply {
+  background: #f5f6ff;
+  border-left: none;
+  margin-bottom: 6px;
+}
+
+.reply-form-nested {
+  margin-left: 0;
+  margin-top: 6px;
+  background: #f0f4ff;
+  border: 1px solid #c7d2fe;
+}

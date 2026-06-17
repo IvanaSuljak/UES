@@ -562,3 +562,61 @@ form label {
   color: #333;
   font-size: 13px;
 }
+
+.btn-comments {
+  padding: 8px 14px;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.btn-comments:hover { background: #7c3aed; }
+
+.comments-thread-mgr {
+  margin-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+}
+
+.comment-item-mgr {
+  background: #f8f9ff;
+  border-left: 3px solid #6366f1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.comment-header-mgr {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.comment-header-mgr strong { font-size: 13px; color: #333; }
+
+.comment-date-mgr { font-size: 11px; color: #999; }
+
+.comment-text-mgr { font-size: 13px; color: #444; margin: 0; }
+
+.comment-replies-mgr {
+  margin-left: 16px;
+  margin-top: 6px;
+  border-left: 2px solid #c7d2fe;
+  padding-left: 10px;
+}
+
+.comment-reply-mgr {
+  background: #eef2ff;
+  border-left: 2px solid #818cf8;
+}
+
+.no-comments-mgr {
+  font-size: 13px;
+  color: #aaa;
+  font-style: italic;
+  padding: 6px 0;
+}

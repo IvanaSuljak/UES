@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -112,15 +114,39 @@ public class CommentController {
         }
     }
 
-    //Svi komentari
+    //Svi komentari sa nested replies
     @GetMapping("/review/{reviewId}")
     public ResponseEntity<?> getCommentsForReview(@PathVariable Long reviewId) {
         try {
-            List<Comment> comments = commentService.findByReviewId(reviewId);
-            return ResponseEntity.ok(comments);
+            List<Comment> topLevel = commentService.findByReviewId(reviewId);
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Comment c : topLevel) {
+                result.add(buildCommentTree(c));
+            }
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    private Map<String, Object> buildCommentTree(Comment c) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", c.getId());
+        m.put("text", c.getText());
+        m.put("createdAt", c.getCreatedAt());
+        if (c.getUser() != null) {
+            m.put("user", Map.of(
+                    "id", c.getUser().getId(),
+                    "fullName", c.getUser().getFullName() != null ? c.getUser().getFullName() : c.getUser().getEmail()
+            ));
+        }
+        List<Comment> replies = commentService.findRepliesByParentId(c.getId());
+        List<Map<String, Object>> repliesTree = new ArrayList<>();
+        for (Comment r : replies) {
+            repliesTree.add(buildCommentTree(r));
+        }
+        m.put("replies", repliesTree);
+        return m;
     }
 
     @GetMapping("/{commentId}/replies")

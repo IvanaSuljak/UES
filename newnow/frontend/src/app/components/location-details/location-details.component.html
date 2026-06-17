@@ -241,6 +241,11 @@
 
         <!-- M3: thread komentara -->
         <div class="comments-thread" *ngIf="commentsMap[review.id]">
+          <div *ngIf="commentsMap[review.id].length === 0" class="no-comments">
+            Nema komentara — budite prvi!
+          </div>
+
+          <!-- Top-level komentari -->
           <div class="comment-item" *ngFor="let c of commentsMap[review.id]">
             <div class="comment-header">
               <strong>{{ c.user?.fullName }}</strong>
@@ -248,17 +253,61 @@
             </div>
             <p class="comment-text">{{ c.text }}</p>
             <button class="btn-reply-comment" (click)="openReply(review.id, c.id)">↩ Odgovori</button>
+
+            <!-- Forma za reply na ovaj komentar -->
+            <div class="reply-form reply-form-nested" *ngIf="replyingToReviewId === review.id && replyingToCommentId === c.id">
+              <textarea [(ngModel)]="replyText"
+                        name="replyText_c_{{ c.id }}"
+                        placeholder="Odgovorite na komentar..."
+                        rows="2"></textarea>
+              <div class="reply-actions">
+                <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
+                <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
+              </div>
+            </div>
+
+            <!-- Nested replies -->
+            <div class="comment-replies" *ngIf="c.replies && c.replies.length > 0">
+              <div class="comment-item comment-item-reply" *ngFor="let r of c.replies">
+                <div class="comment-header">
+                  <strong>{{ r.user?.fullName }}</strong>
+                  <span class="comment-date">{{ r.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                </div>
+                <p class="comment-text">{{ r.text }}</p>
+                <button class="btn-reply-comment" (click)="openReply(review.id, r.id)">↩ Odgovori</button>
+
+                <!-- Forma za reply na reply (3. nivo) -->
+                <div class="reply-form reply-form-nested" *ngIf="replyingToReviewId === review.id && replyingToCommentId === r.id">
+                  <textarea [(ngModel)]="replyText"
+                            name="replyText_r_{{ r.id }}"
+                            placeholder="Odgovorite..."
+                            rows="2"></textarea>
+                  <div class="reply-actions">
+                    <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
+                    <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div *ngIf="commentsMap[review.id].length === 0" class="no-comments">
-            Nema komentara — budite prvi!
+          <!-- Forma za reply na utisak (top nivo) -->
+          <div class="reply-form" *ngIf="replyingToReviewId === review.id && replyingToCommentId === null">
+            <textarea [(ngModel)]="replyText"
+                      name="replyText_{{ review.id }}"
+                      placeholder="Unesite odgovor na utisak..."
+                      rows="2"></textarea>
+            <div class="reply-actions">
+              <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
+              <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
+            </div>
           </div>
         </div>
 
-        <!-- M3: forma za reply -->
-        <div class="reply-form" *ngIf="replyingToReviewId === review.id">
+        <!-- Forma za reply kada komentari nisu otvoreni -->
+        <div class="reply-form" *ngIf="replyingToReviewId === review.id && commentsMap[review.id] === undefined">
           <textarea [(ngModel)]="replyText"
-                    name="replyText_{{ review.id }}"
+                    name="replyText_outside_{{ review.id }}"
                     placeholder="Unesite odgovor..."
                     rows="2"></textarea>
           <div class="reply-actions">

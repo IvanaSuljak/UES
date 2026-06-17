@@ -53,6 +53,7 @@ export class ManagerDashboardComponent implements OnInit {
   myLocation: Location | null = null;
   events: Event[] = [];
   reviews: Review[] = [];
+  commentsMap: { [reviewId: number]: any[] } = {};
 
   showEventForm = false;
   editingEvent: Event | null = null;
@@ -283,6 +284,24 @@ export class ManagerDashboardComponent implements OnInit {
     }
   }
 
+  // ==================== COMMENTS ====================
+
+  loadComments(reviewId: number): void {
+    this.http.get<any[]>(`${environment.apiUrl}/comments/review/${reviewId}`)
+      .subscribe({
+        next: (comments) => { this.commentsMap[reviewId] = comments; },
+        error: (err) => console.error('Greška pri učitavanju komentara:', err)
+      });
+  }
+
+  toggleComments(reviewId: number): void {
+    if (this.commentsMap[reviewId] !== undefined) {
+      delete this.commentsMap[reviewId];
+    } else {
+      this.loadComments(reviewId);
+    }
+  }
+
   // ==================== REVIEW MANAGEMENT ====================
 
   openReplyForm(review: Review) {
@@ -306,16 +325,17 @@ export class ManagerDashboardComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
+    const reviewId = this.replyingToReview.id;
     // M3 — manager odgovara na utisak (POST /api/comments/review/{reviewId})
     this.http.post(
-      `${environment.apiUrl}/comments/review/${this.replyingToReview.id}`,
+      `${environment.apiUrl}/comments/review/${reviewId}`,
       { text: this.replyText },
       { headers }
     ).subscribe({
       next: () => {
         alert('Odgovor poslat ✅');
         this.closeReplyForm();
-        this.loadReviews();
+        this.loadComments(reviewId);
       },
       error: (err) => {
         console.error('Greška:', err);

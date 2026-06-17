@@ -79,15 +79,36 @@
 
           <div class="review-actions">
             <button class="btn-reply" (click)="openReplyForm(review)">💬 Odgovori</button>
+            <button class="btn-comments" (click)="toggleComments(review.id)">
+              🗨️ {{ commentsMap[review.id] !== undefined ? 'Sakrij komentare' : 'Prikaži komentare' }}
+            </button>
             <button class="btn-hide" (click)="hideReview(review.id)" *ngIf="!review.hidden">👁️ Sakrij</button>
             <button class="btn-unhide" (click)="unhideReview(review.id)" *ngIf="review.hidden">👁️ Prikaži</button>
             <button class="btn-delete-review" (click)="deleteReview(review.id)">🗑️ Obriši</button>
           </div>
 
-          <!-- Prikaz odgovora menadžera -->
-          <div *ngIf="review.managerReply" class="manager-reply">
-            <strong>Vaš odgovor:</strong>
-            <p>{{ review.managerReply }}</p>
+          <!-- Komentari/odgovori na utisak -->
+          <div class="comments-thread-mgr" *ngIf="commentsMap[review.id]">
+            <div *ngIf="commentsMap[review.id].length === 0" class="no-comments-mgr">
+              Nema odgovora na ovaj utisak još.
+            </div>
+            <div class="comment-item-mgr" *ngFor="let c of commentsMap[review.id]">
+              <div class="comment-header-mgr">
+                <strong>{{ c.user?.fullName }}</strong>
+                <span class="comment-date-mgr">{{ c.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+              </div>
+              <p class="comment-text-mgr">{{ c.text }}</p>
+              <!-- Nested replies -->
+              <div class="comment-replies-mgr" *ngIf="c.replies && c.replies.length > 0">
+                <div class="comment-item-mgr comment-reply-mgr" *ngFor="let r of c.replies">
+                  <div class="comment-header-mgr">
+                    <strong>{{ r.user?.fullName }}</strong>
+                    <span class="comment-date-mgr">{{ r.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                  </div>
+                  <p class="comment-text-mgr">{{ r.text }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <div class="search-container">
   <div class="search-header">
     <h1>🔍 Napredna pretraga mesta</h1>
-    <p class="subtitle">Pretražujte po nazivu, opisu, PDF sadržaju, ocjenama i broju utisaka</p>
+    <p class="subtitle">Pretražujte po nazivu, opisu, PDF sadržaju, ocenama i broju utisaka</p>
   </div>
 
   <!-- Help box -->
@@ -63,11 +63,11 @@
         <input type="number" [(ngModel)]="params.reviewsMax" name="reviewsMax" min="0" placeholder="do">
       </div>
       <div class="form-group half">
-        <label>🌟 Prosječna ocjena od</label>
+        <label>🌟 Prosečna ocena od</label>
         <input type="number" [(ngModel)]="params.ratingMin" name="ratingMin" min="0" max="10" step="0.1" placeholder="od">
       </div>
       <div class="form-group half">
-        <label>🌟 Prosječna ocjena do</label>
+        <label>🌟 Prosečna ocena do</label>
         <input type="number" [(ngModel)]="params.ratingMax" name="ratingMax" min="0" max="10" step="0.1" placeholder="do">
       </div>
     </div>
@@ -120,7 +120,7 @@
       <label>Sortiraj po:</label>
       <select [(ngModel)]="params.sortBy" name="sortBy">
         <option value="name">Nazivu</option>
-        <option value="rating">Prosječnoj ocjeni</option>
+        <option value="rating">Prosečnoj oceni</option>
         <option value="reviews">Broju utisaka</option>
       </select>
       <select [(ngModel)]="params.sortOrder" name="sortOrder">
@@ -144,7 +144,7 @@
 
   <!-- Rezultati -->
   <div class="results-section" *ngIf="searched">
-    <h2>Pronađeno {{ results.length }} {{ results.length === 1 ? 'mjesto' : 'mjesta' }}</h2>
+    <h2>Pronađeno {{ results.length }} {{ results.length === 1 ? 'mesto' : 'mesta' }}</h2>
 
     <div class="no-results" *ngIf="results.length === 0 && !errorMsg">
       <p>Nema rezultata za zadate kriterijume. Pokušajte sa drugačijim parametrima.</p>
@@ -180,8 +180,8 @@
           </div>
 
           <div class="result-actions">
-            <a [routerLink]="['/locations', r.id]" class="btn-visit">Posjeti mjesto</a>
-            <button class="btn-similar" (click)="loadSimilar(r.id, $event)">🔗 Slična mjesta</button>
+            <a [routerLink]="['/locations', r.id]" class="btn-visit">Poseti mesto</a>
+            <button class="btn-similar" (click)="loadSimilar(r.id, $event)">🔗 Slična mesta</button>
             <button class="btn-pdf" *ngIf="r.pdfFileName" (click)="downloadPdf(r.id, $event)">
               📥 Preuzmi PDF
             </button>
@@ -193,7 +193,7 @@
 
   <!-- Slicna mesta (MLT) -->
   <div class="similar-section" *ngIf="similarResults.length > 0">
-    <h2>🔗 Slična mjesta</h2>
+    <h2>🔗 Slična mesta</h2>
     <div class="similar-grid">
       <div class="similar-card" *ngFor="let s of similarResults">
         <img [src]="s.imageUrl" [alt]="s.name" onerror="this.src='https://placehold.co/200x120/333/fff?text=Nema'">
@@ -201,7 +201,7 @@
           <h4>{{ s.name }}</h4>
           <p>📍 {{ s.address }}</p>
           <p>⭐ {{ s.averageRating?.toFixed(1) }}</p>
-          <a [routerLink]="['/locations', s.id]" class="btn-visit-small">Posjeti</a>
+          <a [routerLink]="['/locations', s.id]" class="btn-visit-small">Poseti</a>
         </div>
       </div>
     </div>

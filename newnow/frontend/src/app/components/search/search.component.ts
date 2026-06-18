@@ -81,7 +81,7 @@ export class SearchComponent {
           this.searched = true;
         },
         error: (err) => {
-          this.errorMsg = 'Greška pri pretrazi. Provjeri da li je Elasticsearch pokrenut.';
+          this.errorMsg = 'Greška pri pretrazi. Proveri da li je Elasticsearch pokrenut.';
           this.loading = false;
           this.searched = true;
         }

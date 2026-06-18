@@ -119,6 +119,7 @@ public class LocationSearchService {
                     .withHighlightQuery(highlightQuery)
                     .withSort(s -> s.field(f -> f.field(sortField).order(so)))
                     .withPageable(PageRequest.of(0, 50))
+                    .withTrackScores(true)
                     .build();
 
             SearchHits<LocationDocument> hits = elasticsearchOperations.search(query, LocationDocument.class);
@@ -140,7 +141,8 @@ public class LocationSearchService {
                 r.put("avgSoundLight", doc.getAvgSoundLight());
                 r.put("avgSpace", doc.getAvgSpace());
                 r.put("avgOverall", doc.getAvgOverall());
-                r.put("score", hit.getScore());
+                float scoreVal = hit.getScore();
+                r.put("score", Float.isNaN(scoreVal) ? null : scoreVal);
                 if (!hit.getHighlightFields().isEmpty()) {
                     r.put("highlights", hit.getHighlightFields());
                 }
@@ -202,8 +204,8 @@ public class LocationSearchService {
             String term = value.substring(1);
             return FuzzyQuery.of(f -> f.field(field).value(term).fuzziness("2"))._toQuery();
         } else if (value.endsWith("*")) {
-            String prefix = value.substring(0, value.length() - 1).toLowerCase();
-            return PrefixQuery.of(p -> p.field(field + ".keyword").value(prefix))._toQuery();
+            String prefix = value.substring(0, value.length() - 1);
+            return PrefixQuery.of(p -> p.field(field + ".keyword").value(prefix).caseInsensitive(true))._toQuery();
         } else {
             return MatchQuery.of(m -> m.field(field).query(value))._toQuery();
         }

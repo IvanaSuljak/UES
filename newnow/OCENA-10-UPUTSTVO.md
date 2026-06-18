@@ -1,37 +1,83 @@
-# OCENA 10 — UES Implementacija
+# OCENA 10 — UES Implementacija (Elasticsearch + MinIO)
 
-## Šta je implementirano
+## Pokretanje kompletnog sistema
 
-### Infrastruktura (Docker)
-- **`docker-compose.yml`** — pokreće Elasticsearch 8.13 i MinIO u Docker kontejnerima
-- Elasticsearch: `http://localhost:9200`
-- MinIO (S3-kompatibilni storage): `http://localhost:9000` (API), `http://localhost:9001` (konzola)
-- Pokretanje: `docker-compose up -d`
+```
+1. Pokreni Docker Desktop
+2. cd newnow
+3. docker-compose up -d          ← pokreće ES 8.13 i MinIO
+4. .\mvnw.cmd spring-boot:run    ← Spring Boot (automatski reindeksira)
+5. cd frontend && ng serve       ← Angular na :4200
+```
+
+### Provjera infrastrukture
+
+| URL | Šta prikazuje |
+|-----|---------------|
+| `http://localhost:9200` | Elasticsearch JSON — `"number": "8.13.0"` |
+| `http://localhost:9001` | MinIO konzola — login: `minioadmin / minioadmin` |
+| `http://localhost:4200/search` | Search stranica |
 
 ---
 
-## [S1] Pretraga mesta u Elasticsearch-u
-
-### Arhitektura
+## Arhitektura
 
 ```
-MySQL (originalni podaci) → LocationIndexService → Elasticsearch (indeks "locations")
-                                                ↑
-                          ElasticsearchInitializer (pri startu Spring Boot-a)
+MySQL (Location entiteti)
+        │
+        ▼  pri startu aplikacije (ElasticsearchInitializer)
+LocationIndexService
+        │  - računa averageRating, avgPerformance, avgSoundLight, avgSpace, avgOverall
+        │  - parsira PDF fajl iz MinIO (Apache PDFBox) → pdfContent polje
+        │
+        ▼
+Elasticsearch indeks "locations"
+        │
+        ▼  GET /api/search/locations?name=...
+LocationSearchService → NativeQuery → ElasticsearchOperations
+        │
+        ▼
+Angular SearchComponent (/search)
 ```
 
-### Fajlovi — Backend
+---
 
-| Fajl | Uloga |
-|------|-------|
-| `elasticsearch/LocationDocument.java` | ES model (indeksna struktura) |
-| `elasticsearch/LocationSearchRepository.java` | Spring Data ES repozitorij |
-| `elasticsearch/LocationSearchService.java` | Svi query tipovi, Highlighter, MLT |
-| `elasticsearch/LocationIndexService.java` | Indeksiranje + PDF parsiranje |
-| `elasticsearch/ElasticsearchInitializer.java` | Auto-reindeks pri startu |
-| `controller/SearchController.java` | REST endpoints |
-| `service/MinioService.java` | Upload/download fajlova u MinIO |
-| `resources/elasticsearch/settings.json` | Custom Serbian analyzer |
+## [S1] Elasticsearch — Podržani query tipovi
+
+### Sintaksa u polju pretrage
+
+| Unos | Tip upita | Primer | Šta vraća |
+|------|-----------|--------|-----------|
+| `exit festival` | **MatchQuery** | Obična pretraga | Dokumenti koji sadrže te reči |
+| `"exit festival"` | **PhraseQuery** | Tačna fraza (sa navodnicima) | Samo tačna ta fraza u tom redosledu |
+| `Exit*` | **PrefixQuery** | Pretraga po prefiksu (sa `*`) | Sve što počinje sa "Exit" |
+| `~exittt` | **FuzzyQuery** | Sa `~` na početku | Toleriše 2 greške u kucanju |
+
+### BooleanQuery (AND/OR)
+- **AND** (default) — sva polja moraju da se poklapaju
+- **OR** — dovoljno je da se poklopi jedno polje
+
+### Range upiti (filteri opsegom)
+Rade nezavisno od tekstualnog polja. Kombinuju se uvek sa AND:
+- `ratingMin` / `ratingMax` — prosečna ocena (0–10)
+- `reviewsMin` / `reviewsMax` — broj utisaka
+- `perfMin/Max`, `soundMin/Max`, `spaceMin/Max`, `overallMin/Max` — po kategorijama
+
+---
+
+## Pretraživa polja
+
+| Polje | Parametar | Opis |
+|-------|-----------|------|
+| Naziv mesta | `name` | Ime lokacije |
+| Opis mesta | `description` | Tekstualni opis |
+| Sadržaj PDF-a | `pdf` | Tekst izvučen iz PDF brošure lokacije |
+| Prosečna ocena | `ratingMin/Max` | Ukupna prosečna ocena |
+| Nastup | `perfMin/Max` | Ocena nastupa |
+| Zvuk i svetlo | `soundMin/Max` | Ocena tehničke opreme |
+| Prostor | `spaceMin/Max` | Ocena prostora |
+| Ukupan utisak | `overallMin/Max` | Ukupan utisak korisnika |
+| Broj utisaka | `reviewsMin/Max` | Broj ocenjivanja |
 
 ---
 
@@ -41,163 +87,225 @@ MySQL (originalni podaci) → LocationIndexService → Elasticsearch (indeks "lo
 
 ```json
 "serbian_analyzer": {
-  "char_filter": ["serbian_cyrillic_to_latin"],  // Ćirilica → Latinica
+  "char_filter": ["serbian_cyrillic_to_latin"],
   "tokenizer": "standard",
-  "filter": ["lowercase", "asciifolding"]        // Mala slova + dijakritici
+  "filter": ["lowercase", "asciifolding"]
 }
 ```
 
-**Zašto:** Pretraga je nezavisna od:
-- Velikih/malih slova (`EXIT` == `exit`)
-- Ćirilice/latinice (`Излаз` == `Izlaz`)
-- Dijakritika (`đ` == `dj`)
+**Šta omogućava:**
+- `EXIT` == `exit` == `Exit` — case insensitive
+- `Излаз` == `Izlaz` — ćirilica → latinica (char_filter sa mapiranjem svakog ćiriličnog slova)
+- `sume` == `šume` — ASCII folding (dijakritici se ignorišu)
+
+**Zašto char_filter a ne filter?**  
+Jer `mapping` tip transformacije radi na nivou karaktera **pre** tokenizacije. `filter` radi na tokenima (rečima) — prekasno za konverziju ćirilice.
 
 ---
 
-## Podržani query tipovi
+## Highlighter
 
-| Sintaksa | Tip | Primjer |
-|----------|-----|---------|
-| `exit festival` | MatchQuery | Obična pretraga |
-| `"exit festival"` | PhraseQuery | Tačna fraza |
-| `Exit*` | PrefixQuery | Pretraga po prefiksu |
-| `~exittt` | FuzzyQuery | Sa greškom (distanca 2) |
+ES automatski vraća fragment teksta gde je pronađen term, označen sa `<mark>...</mark>` tagovima.
 
-### BooleanQuery
-- **AND** — sva polja moraju odgovarati (default)
-- **OR** — dovoljno jedno polje
+```java
+HighlightParameters.builder()
+    .withPreTags("<mark>")
+    .withPostTags("</mark>")
+    .build();
+```
 
----
+Frontend prikazuje highlight umesto originalnog teksta:
+```html
+<h3 [innerHTML]="getHighlight(r, 'name') || r.name"></h3>
+```
 
-## Pretraživa polja
-
-1. **Naziv mesta** (`name`)
-2. **Opis mesta** (`description`)
-3. **PDF sadržaj** (`pdfContent`) — tekst se parsira iz PDF-a (PDFBox)
-4. **Broj utisaka** — opseg od-do (`reviewsMin`, `reviewsMax`)
-5. **Prosječna ocjena** — opseg od-do (`ratingMin`, `ratingMax`)
-6. **Ocjena nastupa** — opseg (`perfMin`, `perfMax`)
-7. **Ocjena zvuka i svetla** — opseg (`soundMin`, `soundMax`)
-8. **Ocjena prostora** — opseg (`spaceMin`, `spaceMax`)
-9. **Ukupan utisak** — opseg (`overallMin`, `overallMax`)
+**Primer:** Pretraga `festival` → vrača `Exit <mark>Festival</mark>`
 
 ---
 
-## Highlighter (dinamički sažetak)
+## Relevantnost (score)
 
-Elasticsearch vraća fragment teksta gdje je pronađen term, označen tagovima `<mark>...</mark>`. Prikazuje se na kartici rezultata:
-- Žuti highlight u opisu
-- Zeleni highlight za PDF sadržaj
+Svaki rezultat ima `score` — broj koji pokazuje koliko dokument odgovara upitu.
+- Veći score = relevantniji rezultat
+- Kada se sortira po polju (npr. po nazivu), ES po defaultu ne računa score → dodali smo `withTrackScores(true)` da uvek bude dostupan
+- Sortiranje po relevantnosti: `sortBy=_score&sortOrder=desc`
 
 ---
 
 ## More Like This (MLT)
 
-- Endpoint: `GET /api/search/locations/{id}/similar`
-- Traži slična mesta prema poljima: `name`, `description`, `pdfContent`
-- `minTermFreq=1`, `maxQueryTerms=12`, `minDocFreq=1`
-- Prikazano klikom na "🔗 Slična mjesta"
+- **Endpoint:** `GET /api/search/locations/{id}/similar`
+- Traži dokumente slične zadatom, prema poljima: `name`, `description`, `pdfContent`
+- Parametri: `minTermFreq=1`, `maxQueryTerms=12`, `minDocFreq=1`
+- Dugme **"🔗 Slična mesta"** u rezultatima pretrage
+
+**Zašto minDocFreq=1?** — Jer imamo mali broj dokumenata (13 lokacija). Sa defaultnom vrednošću (5), MLT ne bi radio jer nijedan term ne bi bio u 5+ dokumenata.
 
 ---
 
-## MinIO — Storage za slike i PDF-ove
+## MinIO — Object Storage
 
 **Bucket:** `newnow-files`
 
-| Endpoint | Opis |
-|----------|------|
-| `POST /api/search/locations/{id}/pdf` | Upload PDF fajla |
-| `GET /api/search/locations/{id}/pdf` | Download PDF fajla |
+MinIO je S3-kompatibilan object storage (kao AWS S3 ali self-hosted u Docker kontejneru).
 
-PDF se automatski parsira i sadržaj se indeksira u ES `pdfContent` polje.
+### Endpoints
 
----
+| Endpoint | Metod | Ko može | Opis |
+|----------|-------|---------|------|
+| `/api/search/locations/{id}/pdf` | POST | Prijavljeni korisnik | Upload PDF fajla za lokaciju |
+| `/api/search/locations/{id}/pdf` | GET | Svi | Download PDF fajla |
+| `/api/search/reindex` | POST | Svi | Ručno reindeksiranje svih lokacija |
 
-## Sinhronizacija ES indeksa
-
-- **Automatski** pri startu aplikacije (`ElasticsearchInitializer`) — svi MySQL entiteti se indeksiraju
-- **Ručno** (admin): `POST /api/search/reindex`
-- Svaki put kada se kreira/mijenja lokacija, treba ručno reindeksirati (ili pozvati reindex)
-
----
-
-## REST API — Pretraga
+### Kako radi upload i indeksiranje PDF-a
 
 ```
-GET /api/search/locations?name=Exit&sortBy=rating&sortOrder=desc&operator=AND
-GET /api/search/locations?reviewsMin=1&ratingMin=7
-GET /api/search/locations?name="exit festival"
-GET /api/search/locations?name=~exittt
-GET /api/search/locations?name=Exit*
-GET /api/search/locations/{id}/similar
-GET /api/search/locations/{id}/pdf
-POST /api/search/locations/{id}/pdf   (multipart/form-data, field: "file")
-POST /api/search/reindex
+Korisnik uploada PDF
+      │
+      ▼ MinioService.uploadFile()
+MinIO bucket "newnow-files"
+      │
+      ▼ location.setPdfFileName(objectName)
+      ▼ locationRepository.save(location)
+      │
+      ▼ LocationIndexService.indexLocation(location)
+          → MinioService.downloadFile(pdfFileName)
+          → PDFBox: Loader.loadPDF(bytes) → PDFTextStripper.getText()
+          → pdfContent polje u ES indeksu
+```
+
+**Napomena:** Sadržaj PDF-a se čuva u ES pod `pdfContent` poljem — pretraživanje po PDF sadržaju radi čak i ako opis lokacije ne sadrži tu reč.
+
+---
+
+## Sinhronizacija MySQL → Elasticsearch
+
+| Kada | Kako |
+|------|------|
+| Svaki start aplikacije | `ElasticsearchInitializer` → `reindexAll()` — svi MySQL entiteti se automatski indeksiraju |
+| Ručno | `POST /api/search/reindex` |
+| Nakon PDF uploada | `LocationIndexService.indexLocation(location)` se poziva automatski |
+
+---
+
+## REST API — svi endpoints
+
+```
+GET  /api/search/locations                          ← osnovna pretraga (bez parametara = sve)
+GET  /api/search/locations?name=Exit*               ← prefix pretraga
+GET  /api/search/locations?name="Exit Festival"     ← phrase pretraga
+GET  /api/search/locations?name=~exittt             ← fuzzy pretraga
+GET  /api/search/locations?ratingMin=5&ratingMax=10 ← range po oceni
+GET  /api/search/locations?name=festival&operator=OR&description=barcelona ← OR logika
+GET  /api/search/locations?sortBy=rating&sortOrder=desc ← sortiranje
+GET  /api/search/locations/{id}/similar             ← More Like This
+GET  /api/search/locations/{id}/pdf                 ← download PDF
+POST /api/search/locations/{id}/pdf                 ← upload PDF (multipart, field: "file")
+POST /api/search/reindex                            ← ručno reindeksiranje
 ```
 
 ---
 
-## Frontend — Angular Komponenta `/search`
+## Frontend — Angular komponenta `/search`
 
 **Lokacija:** `frontend/src/app/components/search/`
 
-**Funkcionalnosti:**
-- Polja za pretragu: naziv, opis, PDF
+### Funkcionalnosti
+
+- Polja za pretragu: naziv, opis, PDF sadržaj
 - AND/OR operator dugmad
 - Opseg broja utisaka (min/max)
-- Opseg prosječne ocjene (min/max)
-- Napredni filteri po kategorijama (nastup, zvuk, prostor, ukupno)
-- Sortiranje po: nazivu, ocjeni, broju utisaka
-- Prikaz rezultata sa karticama
-- Highlight (žuto označeni termini u opisu)
-- "🔗 Slična mjesta" dugme (MLT)
-- "📥 Preuzmi PDF" dugme (ako postoji PDF)
-- Link "Posjeti mjesto" vodi na `/locations/{id}`
+- Opseg prosečne ocene (min/max)
+- Napredni filteri po kategorijama (nastup, zvuk, prostor, ukupno) — klik na "Prikaži filtre"
+- Sortiranje po: nazivu, oceni, broju utisaka
+- Prikaz rezultata sa karticama + slika
+- Highlight (žuto označeni termini u polju naziva i opisa)
+- Zeleni highlight za PDF sadržaj
+- **"🔗 Slična mesta"** dugme (More Like This)
+- **"📥 Preuzmi PDF"** dugme (vidljivo samo ako lokacija ima PDF)
+- **"Poseti mesto"** link → `/locations/{id}`
 
-**Navbar link:** "🔍 Pretraži" — vidljiv svim korisnicima
-
----
-
-## Ostale Grade 10 funkcionalnosti (već implementirano)
-
-| Funkcionalnost | Status |
-|----------------|--------|
-| K9 — Email nakon promjene lozinke | ✅ `UserServiceImpl.changePassword()` poziva `emailService.sendPasswordChangedEmail()` |
-| A1 — Email nakon obrade zahtjeva | ✅ `AccountRequestController` poziva `sendAccountApprovedEmail/RejectedEmail()` |
-| K6 — Filter po proizvoljnom datumu | ✅ `GET /api/events/filter/date?date=2025-12-31` |
-| M3 — Neograničeni nivo odgovora | ✅ `buildCommentTree()` rekurzivna metoda u `CommentController` |
+**Navbar link:** `🔍 Pretraži` — vidljiv svim korisnicima, ne zahteva prijavu
 
 ---
 
-## Pokretanje sistema (kompletan stack)
+## Testiranje u browseru (potvrđeni scenariji)
 
-1. Pokreni Docker Desktop
-2. U terminalu: `docker-compose up -d` (u `/newnow` folderu)
-3. Pokreni backend: `.\mvnw.cmd spring-boot:run`
-4. Pokreni frontend: `ng serve` (u `/frontend` folderu)
-5. Otvori `http://localhost:4200/search`
+### Test 1 — Match pretraga
+- Naziv: `festival` → Pretraži
+- **Očekuješ:** Exit Festival + Primavera Sound Festival, oba sa `<mark>Festival</mark>` u naslovu
+
+### Test 2 — Prefix pretraga
+- Naziv: `Exit*` → Pretraži
+- **Očekuješ:** Exit Festival + Exit Club (svi koji počinju sa "Exit")
+
+### Test 3 — Fuzzy pretraga
+- Naziv: `~festivall` → Pretraži
+- **Očekuješ:** Exit Festival + Primavera Sound Festival (tolerancija 2 greške)
+
+### Test 4 — Phrase pretraga
+- Naziv: `"Exit Festival"` (sa navodnicima) → Pretraži
+- **Očekuješ:** Samo Exit Festival (tačna fraza)
+
+### Test 5 — Range po oceni
+- Klikni **Resetuj**, zatim: Prosečna ocena od: `5`, do: `10` → Pretraži
+- **Očekuješ:** Samo Exit Festival (jedina lokacija sa ocenom ~7.58; ostale imaju 0.0 jer nemaju utiske)
+
+### Test 6 — OR logika
+- Naziv: `festival`, Opis: `barcelona`, Operator: **OR** → Pretraži
+- **Očekuješ:** 3 rezultata (Exit Festival, Primavera Sound, Camp Nou — jer svaki ima ILI festival ILI barcelona)
+
+### Test 7 — AND logika
+- Naziv: `festival`, Opis: `barcelona`, Operator: **AND** → Pretraži
+- **Očekuješ:** 0 rezultata (nijedna lokacija nema i "festival" u nazivu I "barcelona" u opisu istovremeno)
+
+### Test 8 — Slična mesta (MLT)
+- Pretraži `festival`, na kartici klikni **"🔗 Slična mesta"**
+- **Očekuješ:** pojavljuje se lista sličnih lokacija ispod
+
+---
+
+## Ostale Grade 10 funkcionalnosti
+
+| Funkcionalnost | Implementacija |
+|----------------|----------------|
+| K9 — Email pri promeni lozinke | `UserServiceImpl.changePassword()` → `emailService.sendPasswordChangedEmail()` |
+| A1 — Email pri obradi zahteva | `AccountRequestController` → `sendAccountApprovedEmail()` / `sendAccountRejectedEmail()` |
+| K6 — Filter po datumu | `GET /api/events/filter/date?date=2025-12-31` |
+| M3 — Neograničeni nivoi komentara | `buildCommentTree()` — rekurzivna metoda u `CommentController` |
+
+**Napomena:** Email je MOCK — ne šalje se stvarno, samo se loguje u konzoli. Ovo je konfigurisano u `application.properties` sa `spring.mail.properties.mail.smtp.auth=false`.
 
 ---
 
 ## Moguća pitanja na odbrani
 
-**Q: Šta je Elasticsearch i zašto ga koristimo?**
-A: Distribuiran search engine zasnovan na Lucene. Koristimo ga jer MySQL LIKE pretraga nije dovoljna — ES podržava full-text pretragu, fuzzy matching, range upite, highlighter i MLT.
+**Q: Šta je Elasticsearch i zašto ga koristimo umesto MySQL LIKE?**
+A: ES je distribuiran search engine na bazi Lucene. MySQL `LIKE '%exit%'` je spor (full table scan, nema indeksa), ne podržava fuzzy, phrase, range i highlight. ES ima inverted index koji je optimizovan za full-text pretragu.
+
+**Q: Objasni inverted index.**
+A: Klasičan indeks: dokument → reči. Inverted index: reč → lista dokumenata. Pretraga reči je O(1) umesto O(n).
 
 **Q: Šta je custom analyzer i čemu služi?**
-A: Konfiguracija kako ES tokenizuje i transformiše tekst. Naš `serbian_analyzer` pretvara ćirilicu u latinicu (char_filter), tokenizuje standardno, i normalizuje na mala slova + ASCII.
+A: Konfiguracija pipeline-a za obradu teksta pri indeksiranju i pretrazi. Naš `serbian_analyzer`: char_filter (ćirilica→latinica), tokenizer (standard — deli na reči), filter (lowercase + asciifolding).
 
-**Q: Šta je PhraseQuery vs MatchQuery?**
-A: MatchQuery pronalazi dokumente koji sadrže bilo koji od traženih termina. PhraseQuery zahtjeva da termini budu u tačnom redoslijedu u istom polju.
+**Q: Razlika između PhraseQuery i MatchQuery?**
+A: MatchQuery — reči moraju biti prisutne, redosled nije bitan. PhraseQuery — reči moraju biti u istom redosledu, jedna do druge.
 
-**Q: Šta je FuzzyQuery i distanca?**
-A: Pronalazi termina sličnih zadatom, sa određenim brojem edita (Levenshtein distanca). Koristimo distancu 2 — dozvoljava 2 razlike.
+**Q: Šta je Levenshtein distanca u FuzzyQuery?**
+A: Broj operacija (dodaj, obriši, zameni karakter) potrebnih da se jedna reč pretvori u drugu. `festivall` → `festival` = 1 operacija (brisanje jednog 'l'). Mi koristimo distancu 2 — dozvoljava 2 takve operacije.
 
-**Q: Šta je More Like This?**
-A: ES query koji pronalazi dokumente slične zadatom dokumentu, na osnovu zajedničkih termina u specificiranim poljima.
+**Q: Šta je More Like This query?**
+A: ES upit koji pronalazi dokumente slične zadatom dokumentu na osnovu zajedničkih termina u specificiranim poljima. Interno gradi BoolQuery sa should klauzama za najvažnije termine.
 
 **Q: Šta je MinIO?**
-A: S3-kompatibilan object storage (kao AWS S3 ali self-hosted). Koristimo ga za čuvanje slika i PDF fajlova umjesto lokalnog filesystema.
+A: S3-kompatibilan object storage koji se self-hostuje u Docker kontejneru. Koristimo ga umesto lokalnog filesystema jer je skalabilan, ima REST API, i može se zameniti pravim AWS S3 bez promene koda.
 
 **Q: Kako se PDF parsira i indeksira?**
-A: Koristimo Apache PDFBox biblioteku. Kada se PDF uploada u MinIO, čita se kao stream, parsira se tekst (`PDFTextStripper`), i taj tekst se čuva u ES `pdfContent` polju.
+A: `MinioService.downloadFile()` → bajt niz → `Loader.loadPDF(bytes)` (Apache PDFBox 3.x) → `PDFTextStripper.getText()` → tekst se čuva u `pdfContent` polju ES dokumenta.
+
+**Q: Zašto koristimo withTrackScores(true)?**
+A: Kada ES sortira po nekom polju (npr. po nazivu), po defaultu ne računa relevantnost (score) jer je nepotrebna za sortiranje. Sa `withTrackScores(true)` prisiljavamo ES da uvek računa score, pa ga možemo prikazati korisniku.
+
+**Q: Šta se dešava pri startu aplikacije?**
+A: `ElasticsearchInitializer` (Spring `@EventListener(ApplicationReadyEvent.class)`) poziva `minioService.ensureBucketExists()` da kreira bucket ako ne postoji, zatim `locationIndexService.reindexAll()` koji prolazi kroz sve MySQL lokacije i indeksira ih u ES.

@@ -1,5 +1,7 @@
 package com.example.newnow.controller;
 
+import com.example.newnow.elasticsearch.LocationIndexService;
+import com.example.newnow.model.Comment;
 import com.example.newnow.model.Event;
 import com.example.newnow.model.LocationReview;
 import com.example.newnow.model.Role;
@@ -7,6 +9,7 @@ import com.example.newnow.model.User;
 import com.example.newnow.repository.LocationRepository;
 import com.example.newnow.repository.UserRepository;
 import com.example.newnow.security.JwtUtil;
+import com.example.newnow.service.CommentService;
 import com.example.newnow.service.EventService;
 import com.example.newnow.service.LocationReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,12 @@ public class ReviewController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private LocationIndexService locationIndexService;
+
+    @Autowired
+    private CommentService commentService;
 
     //Sve recenzije za menadyerove događaje
     @GetMapping("/my-reviews")
@@ -141,7 +150,12 @@ public class ReviewController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Odgovor ne može biti prazan!"));
             }
 
-
+            Comment comment = new Comment();
+            comment.setText(reply.trim());
+            comment.setReview(review);
+            comment.setUser(manager);
+            comment.setParentComment(null);
+            commentService.save(comment);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Odgovor poslat ✅",
@@ -177,6 +191,7 @@ public class ReviewController {
             }
 
             reviewService.hideReview(id);
+            locationIndexService.indexLocation(review.getLocation());
             return ResponseEntity.ok(Map.of("message", "Utisak sakriven ✅"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -206,6 +221,7 @@ public class ReviewController {
             }
 
             reviewService.deleteReview(id);
+            locationIndexService.indexLocation(review.getLocation());
             return ResponseEntity.ok(Map.of("message", "Utisak uklonjen ✅ (ocena se ne računa)"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -235,6 +251,7 @@ public class ReviewController {
             }
 
             reviewService.unhideReview(id);
+            locationIndexService.indexLocation(review.getLocation());
             return ResponseEntity.ok(Map.of("message", "Utisak prikazan ✅"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

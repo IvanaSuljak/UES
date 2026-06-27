@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
+import { resolveMediaUrl } from '../../utils/media-url';
 
 @Component({
   selector: 'app-locations',
@@ -134,16 +135,12 @@ export class LocationsComponent implements OnInit {
   }
 
   getImageUrl(url: string): string {
-    if (!url || url === 'placeholder_error')
-      return 'https://placehold.co/400x250/F5F5F0/333333?text=NO+IMAGE';
+    return resolveMediaUrl(url);
+  }
 
-    if (url.startsWith('http')) return url;
-
-    const baseUrl = environment.apiUrl.endsWith('/api')
-                    ? environment.apiUrl.replace('/api', '')
-                    : environment.apiUrl;
-
-    return baseUrl + '/uploads/' + url;
+  downloadPdf(locationId: number, event: Event): void {
+    event.stopPropagation();
+    window.open(`${environment.apiUrl}/search/locations/${locationId}/pdf`, '_blank');
   }
 
   onImageError(event: any) {

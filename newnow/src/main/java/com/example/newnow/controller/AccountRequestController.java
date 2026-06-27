@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/account-requests")
@@ -63,6 +64,25 @@ public class AccountRequestController {
             logger.warn("K1 odbijen — već postoji pending zahtev: {}", request.getEmail());
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Zahtev za ovaj email je već poslat i čeka odobrenje."));
+        }
+
+        // Dozvoli ponovni zahtev ako je prethodni odbijen — ažuriraj postojeći zapis
+        Optional<AccountRequest> existing = accountRequestRepository.findByEmail(request.getEmail());
+        if (existing.isPresent() && existing.get().getStatus() == RequestStatus.REJECTED) {
+            AccountRequest ar = existing.get();
+            ar.setFullName(request.getFullName());
+            ar.setPassword(passwordEncoder.encode(request.getPassword()));
+            ar.setStatus(RequestStatus.PENDING);
+            accountRequestService.save(ar);
+            logger.info("K1 — ponovljen zahtev posle odbijanja: {}", request.getEmail());
+            return ResponseEntity.ok(Map.of(
+                    "message", "Zahtev za registraciju uspešno poslat! Administrator će ga obraditi."
+            ));
+        }
+
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Zahtev za ovaj email već postoji u sistemu."));
         }
 
         request.setPassword(passwordEncoder.encode(request.getPassword()));

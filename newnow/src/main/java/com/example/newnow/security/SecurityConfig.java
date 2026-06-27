@@ -46,18 +46,33 @@ public class SecurityConfig {
                         // A1 — samo admin obrađuje zahteve
                         .requestMatchers("/api/account-requests/**").hasRole("ADMIN")
 
-                        // S1 — pretraga i PDF download su javni
-                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/search/locations").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/search/locations/*/pdf").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/api/search/reindex").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/files/images").hasAnyRole("ADMIN", "MANAGER")
 
-                        // Javni read endpointi (ostaju otvoreni do ocene 7)
+                        // S1 — pretraga, PDF download i MinIO fajlovi javni
+                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
+
+                        // Javni read endpointi
                         .requestMatchers(
-                                "/api/locations/**",
+                                HttpMethod.GET, "/api/locations/**",
                                 "/api/events/**",
-                                "/api/home/**",
+                                "/api/home/**"
+                        ).permitAll()
+
+                        // K9/K10 — profil i lozinka za ulogovane
+                        .requestMatchers("/api/users/profile", "/api/users/change-password").authenticated()
+
+                        // A2 — lista korisnika samo admin (dodatna provera u kontroleru)
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+
+                        // Ostali users endpointi — zabranjeni
+                        .requestMatchers("/api/users/**").authenticated()
+
+                        .requestMatchers(
                                 "/api/reviews/**",
                                 "/api/comments/**",
-                                "/api/users/**",
                                 "/api/manager/**"
                         ).permitAll()
 

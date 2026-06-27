@@ -8,6 +8,7 @@ import com.example.newnow.repository.LocationRepository;
 import com.example.newnow.repository.UserRepository;
 import com.example.newnow.security.JwtUtil;
 import com.example.newnow.service.EventService;
+import com.example.newnow.util.EventTypeUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class EventController {
     @GetMapping("/today")
     public ResponseEntity<List<Event>> getTodayEvents() {
         LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end   = LocalDate.now().atTime(23, 59, 59);
+        LocalDateTime end   = LocalDate.now().plusDays(1).atStartOfDay();
         return ResponseEntity.ok(eventService.findTodayEvents(start, end));
     }
 
@@ -176,13 +177,15 @@ public class EventController {
             event.setTitle(title);
             event.setDescription((String) body.get("description"));
             event.setDateTime(LocalDateTime.parse(dateTimeStr));
-            event.setType(type);
+            event.setType(EventTypeUtil.normalize(type));
             event.setIsRegular((Boolean) isRegularObj);
             event.setImageUrl(imageUrl);
             event.setLocation(location);
 
-            if (body.get("price") != null)
-                event.setPrice(Double.valueOf(body.get("price").toString()));
+            if (body.get("price") != null) {
+                Double price = Double.valueOf(body.get("price").toString());
+                event.setPrice(price == 0.0 ? null : price);
+            }
 
             Event saved = eventService.save(event);
             logger.info("K4 — {} kreirao dogadjaj '{}' na lokaciji {}", user.getEmail(), saved.getTitle(), location.getName());
@@ -221,13 +224,19 @@ public class EventController {
             if (body.containsKey("dateTime") && body.get("dateTime") != null)
                 existing.setDateTime(LocalDateTime.parse((String) body.get("dateTime")));
             if (body.containsKey("type") && !isBlank((String) body.get("type")))
-                existing.setType((String) body.get("type"));
+                existing.setType(EventTypeUtil.normalize((String) body.get("type")));
             if (body.containsKey("isRegular") && body.get("isRegular") != null)
                 existing.setIsRegular((Boolean) body.get("isRegular"));
             if (body.containsKey("imageUrl") && !isBlank((String) body.get("imageUrl")))
                 existing.setImageUrl((String) body.get("imageUrl"));
-            if (body.containsKey("price"))
-                existing.setPrice(body.get("price") != null ? Double.valueOf(body.get("price").toString()) : null);
+            if (body.containsKey("price")) {
+                if (body.get("price") == null) {
+                    existing.setPrice(null);
+                } else {
+                    Double price = Double.valueOf(body.get("price").toString());
+                    existing.setPrice(price == 0.0 ? null : price);
+                }
+            }
 
             Event updated = eventService.save(existing);
             logger.info("K4 — {} azurirao dogadjaj '{}'", user.getEmail(), updated.getTitle());

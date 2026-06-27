@@ -4,6 +4,8 @@ import com.example.newnow.model.Location;
 import com.example.newnow.model.LocationReview;
 import com.example.newnow.model.Role;
 import com.example.newnow.model.User;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import com.example.newnow.repository.LocationRepository;
 import com.example.newnow.security.JwtUtil;
 import com.example.newnow.service.LocationReviewService;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
 public class UserController {
+
+    private static final Logger logger = LogManager.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -36,24 +40,35 @@ public class UserController {
         this.userService = userService;
     }
 
+    /** A2 — Admin lista korisnika za dodelu menadžera (bez lozinke). */
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.findAll();
+    public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String token) {
+        try {
+            User admin = extractUser(token);
+            if (admin.getRole() != Role.ADMIN) {
+                return ResponseEntity.status(403).body(Map.of("error", "Samo administrator može pristupiti listi korisnika."));
+            }
+            List<Map<String, Object>> safe = userService.findAll().stream()
+                    .map(u -> Map.<String, Object>of(
+                            "id", u.getId(),
+                            "email", u.getEmail(),
+                            "fullName", u.getFullName(),
+                            "role", u.getRole().name()
+                    ))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(safe);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Neautorizovan pristup."));
+        }
     }
 
-    @GetMapping("/{email}")
-    public Optional<User> getUserByEmail(@PathVariable String email) {
-        return userService.findByEmail(email);
-    }
-
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.save(user);
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteById(id);
+    private User extractUser(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Nedostaje Authorization header.");
+        }
+        String email = jwtUtil.extractUsername(authHeader.substring(7));
+        return userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
     }
 
     //Promena lozinke

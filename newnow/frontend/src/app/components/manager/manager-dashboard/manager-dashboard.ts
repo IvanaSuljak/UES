@@ -4,6 +4,7 @@ import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { resolveMediaUrl } from '../../../utils/media-url';
 
 interface Location {
   id: number;
@@ -76,6 +77,7 @@ export class ManagerDashboardComponent implements OnInit {
     isRegular: false
   };
   customEventType = '';
+  selectedEventImageFile: File | null = null;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -217,6 +219,7 @@ export class ManagerDashboardComponent implements OnInit {
       };
     }
     this.customEventType = '';
+    this.selectedEventImageFile = null;
     this.showEventForm = true;
   }
 
@@ -224,6 +227,16 @@ export class ManagerDashboardComponent implements OnInit {
     this.showEventForm = false;
     this.editingEvent = null;
     this.customEventType = '';
+    this.selectedEventImageFile = null;
+  }
+
+  onEventImageSelected(domEvent: globalThis.Event): void {
+    const input = domEvent.target as HTMLInputElement;
+    this.selectedEventImageFile = input.files?.[0] || null;
+  }
+
+  getImageUrl(url: string): string {
+    return resolveMediaUrl(url);
   }
 
   saveEvent() {
@@ -245,24 +258,49 @@ export class ManagerDashboardComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    const payload = {
-      ...this.eventForm,
-      type: finalType,
-      locationId: this.myLocation?.id
+    const submitPayload = (imageUrl: string) => {
+      const payload: any = {
+        title: this.eventForm.title,
+        description: this.eventForm.description,
+        dateTime: this.eventForm.dateTime,
+        type: finalType,
+        imageUrl,
+        isRegular: this.eventForm.isRegular,
+        locationId: this.myLocation?.id,
+        price: this.eventForm.price > 0 ? this.eventForm.price : null
+      };
+
+      this.http.request(method, url, { body: payload, headers })
+        .subscribe({
+          next: () => {
+            alert(this.editingEvent ? 'Događaj ažuriran ✅' : 'Događaj dodat ✅');
+            this.closeEventForm();
+            this.loadEvents();
+          },
+          error: (err) => {
+            console.error('Greška pri čuvanju:', err);
+            alert('Greška pri čuvanju događaja: ' + (err.error?.error || err.error?.message || err.message));
+          }
+        });
     };
 
-    this.http.request(method, url, { body: payload, headers })
-      .subscribe({
-        next: () => {
-          alert(this.editingEvent ? 'Događaj ažuriran ✅' : 'Događaj dodat ✅');
-          this.closeEventForm();
-          this.loadEvents();
-        },
-        error: (err) => {
-          console.error('Greška pri čuvanju:', err);
-          alert('Greška pri čuvanju događaja: ' + (err.error?.error || err.error?.message || err.message));
-        }
-      });
+    if (this.selectedEventImageFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedEventImageFile);
+      this.http.post(`${environment.apiUrl}/files/images`, formData, { headers })
+        .subscribe({
+          next: (res: any) => submitPayload(res.objectName),
+          error: (err) => alert(err.error?.error || 'Greška pri uploadu slike u MinIO.')
+        });
+      return;
+    }
+
+    if (!this.eventForm.imageUrl?.trim()) {
+      alert('Unesite URL slike ili izaberite fajl za upload.');
+      return;
+    }
+
+    submitPayload(this.eventForm.imageUrl);
   }
 
   deleteEvent(id: number) {

@@ -113,9 +113,10 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     if (!this.analytics) return;
 
     const a = this.analytics;
+    const hasEvents = (a.totalEvents ?? 0) > 0;
 
     // 1. Pie — redovni vs neredovni
-    if (this.pieEventsCanvas) {
+    if (this.pieEventsCanvas && hasEvents) {
       this.charts.push(new Chart(this.pieEventsCanvas.nativeElement, {
         type: 'pie',
         data: {
@@ -127,7 +128,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     }
 
     // 2. Pie — besplatni vs plaćeni
-    if (this.piePayCanvas) {
+    if (this.piePayCanvas && hasEvents) {
       this.charts.push(new Chart(this.piePayCanvas.nativeElement, {
         type: 'pie',
         data: {
@@ -139,7 +140,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     }
 
     // 3. Bar — događaji po mesecu
-    if (this.barMonthCanvas && a.eventsPerMonth) {
+    if (this.barMonthCanvas && a.eventsPerMonth && Object.keys(a.eventsPerMonth).length > 0) {
       const labels = Object.keys(a.eventsPerMonth);
       const values = Object.values(a.eventsPerMonth) as number[];
       this.charts.push(new Chart(this.barMonthCanvas.nativeElement, {

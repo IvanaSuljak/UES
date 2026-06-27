@@ -1,7 +1,7 @@
 <div class="location-details-container" *ngIf="location">
   <!-- Header sa slikom -->
   <div class="location-header">
-    <img [src]="location.imageUrl || 'assets/placeholder.jpg'"
+    <img [src]="getImageUrl(location.imageUrl)"
          [alt]="location.name"
          class="location-image">
     <div class="location-overlay">
@@ -20,6 +20,8 @@
     <div class="info-section">
       <h2>📝 Opis</h2>
       <p>{{ location.description }}</p>
+      <button type="button" class="btn-pdf" *ngIf="location.pdfFileName" (click)="downloadPdf()">📄 Preuzmi PDF</button>
+      <p class="no-pdf-hint" *ngIf="!location.pdfFileName">PDF dokument nije dostupan za ovo mesto.</p>
     </div>
 
     <!-- 🟢 Prosečna ocena -->
@@ -44,7 +46,8 @@
         <div class="event-info">
           <h3>{{ event.title }}</h3>
           <p class="event-date">📅 {{ event.dateTime | date: 'dd.MM.yyyy HH:mm' }}</p>
-          <p class="event-price" *ngIf="event.price">💰 {{ event.price }} €</p>
+          <p class="event-price" *ngIf="!isFreeEvent(event.price)">💰 {{ event.price }} €</p>
+          <p class="event-price free" *ngIf="isFreeEvent(event.price)">💚 Besplatno</p>
           <p class="event-type">🎭 {{ event.type }}</p>
         </div>
       </div>
@@ -162,14 +165,13 @@
 
       <!-- 💬 KOMENTAR -->
       <div class="form-group">
-        <label for="comment">💬 Komentar:</label>
+        <label for="comment">💬 Komentar (opciono):</label>
         <textarea
           id="comment"
           [(ngModel)]="newReview.comment"
           name="comment"
           rows="4"
-          placeholder="Podelite svoje iskustvo..."
-          required>
+          placeholder="Podelite svoje iskustvo...">
         </textarea>
       </div>
 
@@ -245,61 +247,22 @@
             Nema komentara — budite prvi!
           </div>
 
-          <!-- Top-level komentari -->
-          <div class="comment-item" *ngFor="let c of commentsMap[review.id]">
-            <div class="comment-header">
-              <strong>{{ c.user?.fullName }}</strong>
-              <span class="comment-date">{{ c.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
-            </div>
-            <p class="comment-text">{{ c.text }}</p>
-            <button class="btn-reply-comment" (click)="openReply(review.id, c.id)">↩ Odgovori</button>
+          <!-- Top-level komentari (rekurzivno) -->
+          <app-comment-thread
+            *ngFor="let c of commentsMap[review.id]"
+            [comment]="c"
+            (reply)="openReply(review.id, $event)">
+          </app-comment-thread>
 
-            <!-- Forma za reply na ovaj komentar -->
-            <div class="reply-form reply-form-nested" *ngIf="replyingToReviewId === review.id && replyingToCommentId === c.id">
-              <textarea [(ngModel)]="replyText"
-                        name="replyText_c_{{ c.id }}"
-                        placeholder="Odgovorite na komentar..."
-                        rows="2"></textarea>
-              <div class="reply-actions">
-                <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
-                <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
-              </div>
-            </div>
-
-            <!-- Nested replies -->
-            <div class="comment-replies" *ngIf="c.replies && c.replies.length > 0">
-              <div class="comment-item comment-item-reply" *ngFor="let r of c.replies">
-                <div class="comment-header">
-                  <strong>{{ r.user?.fullName }}</strong>
-                  <span class="comment-date">{{ r.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
-                </div>
-                <p class="comment-text">{{ r.text }}</p>
-                <button class="btn-reply-comment" (click)="openReply(review.id, r.id)">↩ Odgovori</button>
-
-                <!-- Forma za reply na reply (3. nivo) -->
-                <div class="reply-form reply-form-nested" *ngIf="replyingToReviewId === review.id && replyingToCommentId === r.id">
-                  <textarea [(ngModel)]="replyText"
-                            name="replyText_r_{{ r.id }}"
-                            placeholder="Odgovorite..."
-                            rows="2"></textarea>
-                  <div class="reply-actions">
-                    <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
-                    <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Forma za reply na utisak (top nivo) -->
-          <div class="reply-form" *ngIf="replyingToReviewId === review.id && replyingToCommentId === null">
+          <!-- Forma za reply -->
+          <div class="reply-form" *ngIf="replyingToReviewId === review.id">
             <textarea [(ngModel)]="replyText"
                       name="replyText_{{ review.id }}"
-                      placeholder="Unesite odgovor na utisak..."
+                      placeholder="Unesite odgovor..."
                       rows="2"></textarea>
             <div class="reply-actions">
-              <button class="btn-send-reply" (click)="submitReply()">Pošalji</button>
-              <button class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
+              <button type="button" class="btn-send-reply" (click)="submitReply()">Pošalji</button>
+              <button type="button" class="btn-cancel-reply" (click)="cancelReply()">Otkaži</button>
             </div>
           </div>
         </div>

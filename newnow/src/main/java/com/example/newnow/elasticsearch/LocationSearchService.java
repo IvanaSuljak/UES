@@ -202,9 +202,14 @@ public class LocationSearchService {
             return MatchPhraseQuery.of(m -> m.field(field).query(phrase))._toQuery();
         } else if (value.startsWith("~")) {
             String term = value.substring(1);
-            return FuzzyQuery.of(f -> f.field(field).value(term).fuzziness("2"))._toQuery();
+            // Fuzzy na analiziranim text poljima — MatchQuery + fuzziness (FuzzyQuery ne matchuje dobro tokene)
+            return MatchQuery.of(m -> m.field(field).query(term).fuzziness("AUTO"))._toQuery();
         } else if (value.endsWith("*")) {
             String prefix = value.substring(0, value.length() - 1);
+            // Duga tekstualna polja: prefix po rečima u analiziranom tekstu (ne po celom stringu)
+            if ("description".equals(field) || "pdfContent".equals(field)) {
+                return MatchBoolPrefixQuery.of(m -> m.field(field).query(prefix))._toQuery();
+            }
             return PrefixQuery.of(p -> p.field(field + ".keyword").value(prefix).caseInsensitive(true))._toQuery();
         } else {
             return MatchQuery.of(m -> m.field(field).query(value))._toQuery();

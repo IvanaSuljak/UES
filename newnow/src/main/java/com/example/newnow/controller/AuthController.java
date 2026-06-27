@@ -4,8 +4,11 @@ import com.example.newnow.model.AccountRequest;
 import com.example.newnow.model.RequestStatus;
 import com.example.newnow.model.User;
 import com.example.newnow.model.Role;
+import com.example.newnow.model.Event;
 import com.example.newnow.repository.AccountRequestRepository;
+import com.example.newnow.repository.EventRepository;
 import com.example.newnow.repository.UserRepository;
+import com.example.newnow.util.EventTypeUtil;
 import com.example.newnow.security.JwtUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,6 +41,9 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     /**
      * Administrator sistema je predefinisan korisnik — kreira se pri prvom pokretanju.
      */
@@ -56,6 +62,20 @@ public class AuthController {
                 logger.info("Inicijalni admin kreiran: admin@newnow.com / admin123");
             } else {
                 logger.info("Admin korisnik već postoji.");
+            }
+
+            // Normalizacija tipova događaja: concert/Koncert → Concert
+            int normalized = 0;
+            for (Event event : eventRepository.findAll()) {
+                String normalizedType = EventTypeUtil.normalize(event.getType());
+                if (event.getType() != null && !event.getType().equals(normalizedType)) {
+                    event.setType(normalizedType);
+                    eventRepository.save(event);
+                    normalized++;
+                }
+            }
+            if (normalized > 0) {
+                logger.info("Normalizovano {} tipova događaja na 'Concert'", normalized);
             }
         };
     }
@@ -106,9 +126,15 @@ public class AuthController {
             ));
         }
 
+        // Nema User — proveri AccountRequest SAMO posle provere lozinke
         Optional<AccountRequest> requestOpt = accountRequestRepository.findByEmail(email);
         if (requestOpt.isPresent()) {
-            RequestStatus status = requestOpt.get().getStatus();
+            AccountRequest ar = requestOpt.get();
+            if (!passwordEncoder.matches(password, ar.getPassword())) {
+                logger.warn("K2 — pogrešna lozinka (zahtev): {}", email);
+                return ResponseEntity.status(401).body(Map.of("error", "Pogrešan email ili lozinka."));
+            }
+            RequestStatus status = ar.getStatus();
             if (status == RequestStatus.PENDING) {
                 logger.warn("K2 — login pre odobrenja zahteva: {}", email);
                 return ResponseEntity.status(401).body(Map.of(

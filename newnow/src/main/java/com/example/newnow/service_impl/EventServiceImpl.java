@@ -78,7 +78,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Long countEventOccurrences(Long eventId) {
-        return eventRepository.countPastOccurrences(eventId, LocalDateTime.now());
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Događaj nije pronađen"));
+        return eventRepository.countPastOccurrences(
+                event.getLocation().getId(),
+                event.getTitle(),
+                LocalDateTime.now()
+        );
     }
 
     @Override

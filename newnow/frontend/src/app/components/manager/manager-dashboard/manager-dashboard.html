@@ -13,7 +13,7 @@
   <div *ngIf="myLocation" class="content">
     <!-- Info o lokaciji -->
     <div class="location-card">
-      <img [src]="myLocation.imageUrl" [alt]="myLocation.name">
+      <img [src]="getImageUrl(myLocation.imageUrl)" [alt]="myLocation.name">
       <div class="location-details">
         <h2>{{ myLocation.name }}</h2>
         <p>📍 {{ myLocation.address }}</p>
@@ -36,7 +36,7 @@
 
       <div class="events-grid">
         <div *ngFor="let event of events" class="event-card">
-          <img [src]="event.imageUrl" [alt]="event.title">
+          <img [src]="getImageUrl(event.imageUrl)" [alt]="event.title">
           <div class="event-info">
             <h3>{{ event.title }}</h3>
             <p>📅 {{ event.dateTime | date:'dd.MM.yyyy HH:mm' }}</p>
@@ -68,7 +68,7 @@
           <div class="review-header">
             <div class="review-user-info">
               <strong>{{ review.user?.fullName }}</strong>
-              <span class="rating">⭐ {{ review.rating }}/5</span>
+              <span class="rating">⭐ {{ review.rating }}/10</span>
             </div>
             <span *ngIf="review.hidden" class="badge-hidden">Sakriveno</span>
           </div>
@@ -146,7 +146,9 @@
                name="customEventType"
                placeholder="Upiši tip događaja...">
         <label>URL slike *</label>
-        <input [(ngModel)]="eventForm.imageUrl" name="imageUrl" placeholder="https://..." required>
+        <input [(ngModel)]="eventForm.imageUrl" name="imageUrl" placeholder="https://... ili upload ispod">
+        <label>Upload slike (MinIO)</label>
+        <input type="file" accept="image/*" (change)="onEventImageSelected($event)">
 
         <label>
           <input [(ngModel)]="eventForm.isRegular" name="isRegular" type="checkbox">
@@ -204,7 +206,7 @@
 
       <div class="original-review" *ngIf="replyingToReview">
         <p><strong>Korisnik:</strong> {{ replyingToReview?.user?.fullName }}</p>
-        <p><strong>Ocena:</strong> ⭐ {{ replyingToReview?.rating }}/5</p>
+        <p><strong>Ocena:</strong> ⭐ {{ replyingToReview?.rating }}/10</p>
         <p><strong>Komentar:</strong> "{{ replyingToReview?.comment }}"</p>
       </div>
 

@@ -222,6 +222,46 @@ h1 {
   background: #ff5252;
 }
 
+.events-location-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.events-location-picker select {
+  min-width: 260px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.badge-regular {
+  display: inline-block;
+  background: #6366f1;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.modal-hint {
+  color: #666;
+  font-size: 0.9rem;
+  margin: -8px 0 16px;
+}
+
+.modal-content label {
+  display: block;
+  margin: 10px 0 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 /* MENADŽERI */
 .manager-row {
   display: flex;

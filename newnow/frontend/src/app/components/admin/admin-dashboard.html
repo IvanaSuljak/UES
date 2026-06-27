@@ -14,6 +14,11 @@
       🏢 Lokacije
     </button>
     <button
+      [class.active]="activeTab === 'events'"
+      (click)="activeTab = 'events'; loadAdminEvents()">
+      🎉 Događaji
+    </button>
+    <button
       [class.active]="activeTab === 'managers'"
       (click)="activeTab = 'managers'">
       👥 Menadžeri
@@ -49,7 +54,7 @@
 
     <div class="locations-grid">
       <div *ngFor="let loc of locations" class="location-card">
-        <img [src]="loc.imageUrl" [alt]="loc.name">
+        <img [src]="getImageUrl(loc.imageUrl)" [alt]="loc.name">
         <div class="location-info">
           <h3>{{ loc.name }}</h3>
           <p>📍 {{ loc.address }}</p>
@@ -58,7 +63,46 @@
         </div>
         <div class="location-actions">
           <button class="btn-edit" (click)="openLocationForm(loc)">✏️</button>
+          <button class="btn-download" (click)="downloadPdf(loc.id)" title="Preuzmi PDF">📄</button>
           <button class="btn-delete" (click)="deleteLocation(loc.id)">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: DOGAĐAJI (K4 — admin može sve) -->
+  <div *ngIf="activeTab === 'events'" class="tab-content">
+    <div class="header-row">
+      <h2>Upravljanje događajima</h2>
+      <button class="btn-add" (click)="openEventForm()" [disabled]="!selectedEventsLocationId">
+        ➕ Dodaj događaj
+      </button>
+    </div>
+
+    <div class="events-location-picker">
+      <label>Lokacija:</label>
+      <select [(ngModel)]="selectedEventsLocationId" (ngModelChange)="onEventsLocationChange()">
+        <option *ngFor="let loc of locations" [ngValue]="loc.id">{{ loc.name }}</option>
+      </select>
+    </div>
+
+    <div *ngIf="adminEvents.length === 0" class="empty-state">
+      Nema događaja za izabranu lokaciju.
+    </div>
+
+    <div class="locations-grid">
+      <div *ngFor="let event of adminEvents" class="location-card">
+        <img [src]="getImageUrl(event.imageUrl)" [alt]="event.title">
+        <div class="location-info">
+          <h3>{{ event.title }}</h3>
+          <p>📅 {{ event.dateTime | date:'dd.MM.yyyy HH:mm' }}</p>
+          <p>💰 {{ event.price ? event.price + ' €' : 'Besplatno' }}</p>
+          <p>🏷️ {{ event.type }}</p>
+          <p *ngIf="event.isRegular" class="badge-regular">Redovan</p>
+        </div>
+        <div class="location-actions">
+          <button class="btn-edit" (click)="openEventForm(event)">✏️</button>
+          <button class="btn-delete" (click)="deleteAdminEvent(event.id)">🗑️</button>
         </div>
       </div>
     </div>
@@ -89,6 +133,53 @@
   </div>
 </div>
 
+<!-- MODAL: Dodavanje/Uređivanje događaja (K4) -->
+<div *ngIf="showEventForm" class="modal-overlay" (click)="closeEventForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>{{ editingEvent ? 'Uredi događaj' : 'Dodaj događaj' }}</h2>
+    <p class="modal-hint">Mesto: <strong>{{ getSelectedEventsLocationName() }}</strong></p>
+
+    <form (ngSubmit)="saveAdminEvent()">
+      <label>Naziv događaja *</label>
+      <input [(ngModel)]="eventForm.title" name="eventTitle" placeholder="Naziv" required>
+      <label>Opis</label>
+      <textarea [(ngModel)]="eventForm.description" name="eventDescription" placeholder="Opis"></textarea>
+      <label>Datum i vreme *</label>
+      <input [(ngModel)]="eventForm.dateTime" name="eventDateTime" type="datetime-local" required>
+      <label>Cena (€) — 0 = besplatno</label>
+      <input [(ngModel)]="eventForm.price" name="eventPrice" type="number" min="0">
+      <label>Tip događaja *</label>
+      <select [(ngModel)]="eventForm.type" name="eventType" required>
+        <option value="">-- Izaberi tip --</option>
+        <option value="Concert">Concert</option>
+        <option value="Festival">Festival</option>
+        <option value="DJ Set">DJ Set</option>
+        <option value="Stand-up">Stand-up</option>
+        <option value="Theater">Theater</option>
+        <option value="Sports">Sports</option>
+        <option value="Workshop">Workshop</option>
+        <option value="Other">Drugo (unesi ručno)</option>
+      </select>
+      <input *ngIf="eventForm.type === 'Other'"
+             [(ngModel)]="customEventType"
+             name="adminCustomEventType"
+             placeholder="Upiši tip događaja...">
+      <label>URL slike</label>
+      <input [(ngModel)]="eventForm.imageUrl" name="eventImageUrl" placeholder="https://... ili upload ispod">
+      <label class="file-label">📷 Upload slike (MinIO)</label>
+      <input type="file" accept="image/*" (change)="onEventImageSelected($event)">
+      <label>
+        <input [(ngModel)]="eventForm.isRegular" name="eventIsRegular" type="checkbox">
+        Redovan događaj
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn-save">💾 Sačuvaj</button>
+        <button type="button" class="btn-cancel" (click)="closeEventForm()">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- MODAL: Dodavanje/Uređivanje lokacije -->
 <div *ngIf="showLocationForm" class="modal-overlay" (click)="closeLocationForm()">
   <div class="modal-content" (click)="$event.stopPropagation()">
@@ -113,7 +204,11 @@
              name="customLocationType"
              placeholder="Upiši tip mesta...">
       <textarea [(ngModel)]="locationForm.description" name="description" placeholder="Opis"></textarea>
-      <input [(ngModel)]="locationForm.imageUrl" name="imageUrl" placeholder="URL slike (https://...)" required>
+      <input [(ngModel)]="locationForm.imageUrl" name="imageUrl" placeholder="URL slike (https://...) ili upload ispod">
+      <label class="file-label">📷 Upload slike (MinIO)</label>
+      <input type="file" accept="image/*" (change)="onImageFileSelected($event)">
+      <label class="file-label">📄 Upload PDF (MinIO + Elasticsearch)</label>
+      <input type="file" accept="application/pdf" (change)="onPdfFileSelected($event)">
 
       <div class="modal-actions">
         <button type="submit" class="btn-save">💾 Sačuvaj</button>

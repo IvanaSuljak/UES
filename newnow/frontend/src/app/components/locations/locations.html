@@ -80,6 +80,9 @@
         <button class="show-details-btn" (click)="viewLocationDetails(loc.id)">
           🔍 Vidi detalje
         </button>
+        <button class="pdf-btn" *ngIf="loc.pdfFileName" (click)="downloadPdf(loc.id, $event)">
+          📄 PDF
+        </button>
       </div>
     </div>
   </div>

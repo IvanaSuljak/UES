@@ -3,7 +3,11 @@ package com.example.newnow.controller;
 import com.example.newnow.elasticsearch.LocationIndexService;
 import com.example.newnow.elasticsearch.LocationSearchService;
 import com.example.newnow.model.Location;
+import com.example.newnow.model.Role;
+import com.example.newnow.model.User;
 import com.example.newnow.repository.LocationRepository;
+import com.example.newnow.repository.UserRepository;
+import com.example.newnow.security.JwtUtil;
 import com.example.newnow.service.MinioService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +41,12 @@ public class SearchController {
 
     @Autowired
     private MinioService minioService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * S1 - Napredna pretraga mesta
@@ -104,10 +114,23 @@ public class SearchController {
             @RequestHeader("Authorization") String token
     ) {
         try {
+            User user = extractUser(token);
             Location location = locationRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Lokacija nije pronadjena"));
 
-            if (!file.getContentType().equals("application/pdf")) {
+            if (user.getRole() == Role.MANAGER) {
+                if (location.getManager() == null || !location.getManager().getId().equals(user.getId())) {
+                    return ResponseEntity.status(403).body(Map.of("error", "Možete uploadovati PDF samo za sopstvenu lokaciju."));
+                }
+            } else if (user.getRole() != Role.ADMIN) {
+                return ResponseEntity.status(403).body(Map.of("error", "Nemate pravo uploada PDF-a."));
+            }
+
+            String contentType = file.getContentType();
+            String originalName = file.getOriginalFilename();
+            boolean isPdf = (contentType != null && contentType.equalsIgnoreCase("application/pdf"))
+                    || (originalName != null && originalName.toLowerCase().endsWith(".pdf"));
+            if (!isPdf) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Samo PDF fajlovi su dozvoljeni!"));
             }
 
@@ -165,5 +188,12 @@ public class SearchController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    private User extractUser(String token) {
+        String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
+        String email = jwtUtil.extractUsername(jwt);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
     }
 }

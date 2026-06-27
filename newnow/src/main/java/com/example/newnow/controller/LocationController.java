@@ -1,10 +1,12 @@
 package com.example.newnow.controller;
 
+import com.example.newnow.elasticsearch.LocationIndexService;
 import com.example.newnow.model.Location;
 import com.example.newnow.model.LocationReview;
 import com.example.newnow.model.Role;
 import com.example.newnow.model.User;
 import com.example.newnow.repository.EventRepository;
+import com.example.newnow.repository.LocationRepository;
 import com.example.newnow.repository.UserRepository;
 import com.example.newnow.security.JwtUtil;
 import com.example.newnow.service.EventService;
@@ -43,7 +45,13 @@ public class LocationController {
     private EventRepository eventRepository;
 
     @Autowired
+    private LocationRepository locationRepository;
+
+    @Autowired
     private EventService eventService;
+
+    @Autowired
+    private LocationIndexService locationIndexService;
 
     @Autowired
     public LocationController(LocationService locationService, UserRepository userRepository) {
@@ -67,6 +75,7 @@ public class LocationController {
         m.put("type", loc.getType());
         m.put("description", loc.getDescription());
         m.put("imageUrl", loc.getImageUrl());
+        m.put("pdfFileName", loc.getPdfFileName());
         m.put("manager", loc.getManager() != null ? Map.of(
                 "id", loc.getManager().getId(),
                 "fullName", loc.getManager().getFullName()
@@ -190,6 +199,7 @@ public class LocationController {
             loc.setImageUrl(imageUrl);
 
             Location saved = locationService.save(loc);
+            locationIndexService.indexLocation(saved);
             logger.info("K3 — admin {} kreirao mesto: {}", user.getEmail(), saved.getName());
             return ResponseEntity.ok(locationWithRating(saved));
         } catch (Exception e) {
@@ -240,6 +250,7 @@ public class LocationController {
                 location.setDescription((String) body.get("description"));
 
             Location updated = locationService.save(location);
+            locationIndexService.indexLocation(updated);
             logger.info("K3 — {} ({}) azurirao mesto: {}", user.getEmail(), user.getRole(), updated.getName());
             return ResponseEntity.ok(locationWithRating(updated));
         } catch (Exception e) {
@@ -261,6 +272,7 @@ public class LocationController {
                 return ResponseEntity.status(403).body(Map.of("error", "Samo administrator može brisati mesta."));
             }
             locationService.deleteById(id);
+            locationIndexService.removeFromIndex(id);
             logger.info("K3 — admin {} obrisao mesto id={}", user.getEmail(), id);
             return ResponseEntity.ok(Map.of("message", "Mesto obrisano."));
         } catch (Exception e) {
@@ -328,8 +340,11 @@ public class LocationController {
 
             User manager = location.getManager();
             if (manager != null) {
-                manager.setRole(Role.USER);
-                userRepository.save(manager);
+                long otherLocations = locationRepository.countByManagerIdAndIdNot(manager.getId(), locationId);
+                if (otherLocations == 0 && manager.getRole() == Role.MANAGER) {
+                    manager.setRole(Role.USER);
+                    userRepository.save(manager);
+                }
                 logger.info("A2 — {} uklonio menadzera {} sa mesta {}", admin.getEmail(), manager.getEmail(), location.getName());
             }
             location.setManager(null);
@@ -376,15 +391,15 @@ public class LocationController {
             com.example.newnow.model.LocationReview review = new com.example.newnow.model.LocationReview();
 
             if (reviewData.containsKey("performanceRating") && reviewData.get("performanceRating") != null)
-                review.setPerformanceRating(((Number) reviewData.get("performanceRating")).intValue());
+                review.setPerformanceRating(validateRating(reviewData.get("performanceRating"), "Nastup"));
             if (reviewData.containsKey("soundLightRating") && reviewData.get("soundLightRating") != null)
-                review.setSoundLightRating(((Number) reviewData.get("soundLightRating")).intValue());
+                review.setSoundLightRating(validateRating(reviewData.get("soundLightRating"), "Zvuk i svetlo"));
             if (reviewData.containsKey("spaceRating") && reviewData.get("spaceRating") != null)
-                review.setSpaceRating(((Number) reviewData.get("spaceRating")).intValue());
+                review.setSpaceRating(validateRating(reviewData.get("spaceRating"), "Prostor"));
             if (reviewData.containsKey("overallRating") && reviewData.get("overallRating") != null)
-                review.setOverallRating(((Number) reviewData.get("overallRating")).intValue());
+                review.setOverallRating(validateRating(reviewData.get("overallRating"), "Ukupan utisak"));
 
-            review.setComment((String) reviewData.get("comment"));
+            review.setComment(reviewData.get("comment") != null ? ((String) reviewData.get("comment")).trim() : null);
 
             if (reviewData.containsKey("eventId") && reviewData.get("eventId") != null) {
                 Long eventId = ((Number) reviewData.get("eventId")).longValue();
@@ -409,8 +424,11 @@ public class LocationController {
             review.setLocation(location);
 
             com.example.newnow.model.LocationReview saved = reviewService.save(review);
+            locationIndexService.indexLocation(location);
             logger.info("K5 — {} ostavio utisak na mestu {}", user.getEmail(), location.getName());
             return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -493,5 +511,13 @@ public class LocationController {
 
     private boolean isBlank(String s) {
         return s == null || s.isBlank();
+    }
+
+    private int validateRating(Object value, String label) {
+        int v = ((Number) value).intValue();
+        if (v < 1 || v > 10) {
+            throw new IllegalArgumentException(label + " ocena mora biti između 1 i 10.");
+        }
+        return v;
     }
 }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { EventsService } from '../../services/events.service';
-import { environment } from '../../../environments/environment';
+import { resolveMediaUrl } from '../../utils/media-url';
 
 @Component({
   selector: 'app-events-page',
@@ -21,7 +21,8 @@ export class EventsPageComponent implements OnInit {
   searchQuery = '';
   selectedType = '';
   selectedPriceFilter = '';
-  showOnlyToday = true; // 🟢 NOVO - default prikazuje samo današnje
+  selectedDate = '';
+  showOnlyToday = true;
 
   eventTypes: string[] = [];
 
@@ -50,9 +51,16 @@ export class EventsPageComponent implements OnInit {
 
   extractEventTypes(): void {
     const types = this.allEvents
-      .map(e => e.type)
+      .map(e => this.normalizeEventType(e.type))
       .filter((value, index, self) => value && self.indexOf(value) === index);
     this.eventTypes = types;
+  }
+
+  normalizeEventType(type: string): string {
+    if (!type) return type;
+    const lower = type.toLowerCase();
+    if (lower === 'concert' || lower === 'koncert') return 'Concert';
+    return type;
   }
 
   applyFilters(): void {
@@ -84,14 +92,22 @@ export class EventsPageComponent implements OnInit {
 
     // Filter by type
     if (this.selectedType) {
-      result = result.filter(e => e.type === this.selectedType);
+      result = result.filter(e => this.normalizeEventType(e.type) === this.selectedType);
     }
 
-    // Filter by price
+    // Filter by price (null ili 0 = besplatno)
     if (this.selectedPriceFilter === 'free') {
-      result = result.filter(e => e.price === 0);
+      result = result.filter(e => e.price == null || e.price === 0);
     } else if (this.selectedPriceFilter === 'paid') {
-      result = result.filter(e => e.price > 0);
+      result = result.filter(e => e.price != null && e.price > 0);
+    }
+
+    // Filter by date (K6)
+    if (this.selectedDate) {
+      result = result.filter(e => {
+        const eventDate = new Date(e.dateTime).toISOString().substring(0, 10);
+        return eventDate === this.selectedDate;
+      });
     }
 
     this.filteredEvents = result;
@@ -107,21 +123,17 @@ export class EventsPageComponent implements OnInit {
     this.searchQuery = '';
     this.selectedType = '';
     this.selectedPriceFilter = '';
-    this.showOnlyToday = true; // 🟢 Reset na "samo danas"
+    this.selectedDate = '';
+    this.showOnlyToday = true;
     this.applyFilters();
   }
 
+  isFreeEvent(price: number | null | undefined): boolean {
+    return price == null || price === 0;
+  }
+
   getImageUrl(url: string): string {
-    if (!url || url === 'placeholder_error')
-      return 'https://placehold.co/400x300/667eea/ffffff?text=EVENT';
-
-    if (url.startsWith('http')) return url;
-
-    const baseUrl = environment.apiUrl.endsWith('/api')
-      ? environment.apiUrl.replace('/api', '')
-      : environment.apiUrl;
-
-    return baseUrl + '/uploads/' + url;
+    return resolveMediaUrl(url, 'https://placehold.co/400x300/667eea/ffffff?text=EVENT');
   }
 
   onImageError(event: any): void {

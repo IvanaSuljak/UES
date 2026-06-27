@@ -34,6 +34,15 @@
           </select>
         </div>
 
+        <!-- DATE FILTER (K6) -->
+        <div class="filter-group">
+          <input type="date"
+                 [(ngModel)]="selectedDate"
+                 (change)="applyFilters()"
+                 class="filter-select"
+                 title="Filter po datumu">
+        </div>
+
         <!-- PRICE FILTER -->
         <div class="filter-group">
           <select
@@ -99,8 +108,8 @@
             </div>
 
             <p class="event-price">
-              <span *ngIf="event.price === 0" class="price-free">💚 BESPLATNO</span>
-              <span *ngIf="event.price > 0" class="price-paid">💰 {{ event.price }} €</span>
+              <span *ngIf="isFreeEvent(event.price)" class="price-free">💚 BESPLATNO</span>
+              <span *ngIf="!isFreeEvent(event.price)" class="price-paid">💰 {{ event.price }} €</span>
             </p>
 
             <p class="event-description" *ngIf="event.description">

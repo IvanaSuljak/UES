@@ -5,8 +5,8 @@ import com.example.newnow.model.Location;
 import com.example.newnow.repository.EventRepository;
 import com.example.newnow.repository.LocationRepository;
 import com.example.newnow.service.LocationReviewService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class HomeController {
 
-    private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
+    private static final Logger logger = LogManager.getLogger(HomeController.class);
 
     @Autowired
     private EventRepository eventRepository;
@@ -38,14 +38,11 @@ public class HomeController {
             Map<String, Object> response = new HashMap<>();
 
             LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-            LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
+            LocalDateTime startOfNextDay = LocalDate.now().plusDays(1).atStartOfDay();
 
-            List<Event> todayEvents = eventRepository.findAll().stream()
-                    .filter(e -> e.getDateTime() != null &&
-                            e.getDateTime().isAfter(startOfDay) &&
-                            e.getDateTime().isBefore(endOfDay))
-                    .sorted(Comparator.comparing(Event::getDateTime))
-                    .limit(6) // Maksimalno 6 događaja
+            List<Event> todayEvents = eventRepository.findTodayEvents(startOfDay, startOfNextDay)
+                    .stream()
+                    .limit(6)
                     .collect(Collectors.toList());
 
             List<Location> allLocations = locationRepository.findAllValidLocations();

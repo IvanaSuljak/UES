@@ -21,6 +21,8 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 
     Optional<Location> findByManager(User manager);
 
+    long countByManagerIdAndIdNot(Long managerId, Long id);
+
     // K6 — unified search: name, address, type (null = bez tog filtera)
     @Query("SELECT l FROM Location l WHERE " +
            "(:name IS NULL OR LOWER(l.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +

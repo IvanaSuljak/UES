@@ -35,9 +35,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e WHERE e.dateTime >= :startOfDay AND e.dateTime < :endOfDay ORDER BY e.dateTime ASC")
     List<Event> findTodayEvents(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
 
-    // Brojim koliko puta se dogadjaj desio pre nekog datuma
-    @Query("SELECT COUNT(e) FROM Event e WHERE e.id = :eventId AND e.dateTime < :currentDateTime")
-    Long countPastOccurrences(@Param("eventId") Long eventId, @Param("currentDateTime") LocalDateTime currentDateTime);
+    // Broj prošlih održavanja istog redovnog događaja na lokaciji
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.location.id = :locationId AND e.title = :title " +
+            "AND e.isRegular = true AND e.dateTime < :currentDateTime")
+    Long countPastOccurrences(@Param("locationId") Long locationId,
+                              @Param("title") String title,
+                              @Param("currentDateTime") LocalDateTime currentDateTime);
 
     // M4 — eventi za lokaciju u periodu
     @Query("SELECT e FROM Event e WHERE e.location.id = :locationId AND e.dateTime >= :start AND e.dateTime <= :end")

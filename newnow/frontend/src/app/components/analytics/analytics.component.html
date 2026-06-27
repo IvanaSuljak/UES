@@ -76,15 +76,18 @@
     <div class="charts-grid">
       <div class="chart-card">
         <h3>Redovni vs Neredovni</h3>
-        <canvas #pieEventsCanvas></canvas>
+        <canvas #pieEventsCanvas *ngIf="analytics.totalEvents > 0"></canvas>
+        <p class="chart-empty" *ngIf="analytics.totalEvents === 0">Nema događaja u izabranom periodu.</p>
       </div>
       <div class="chart-card">
         <h3>Besplatni vs Plaćeni</h3>
-        <canvas #piePayCanvas></canvas>
+        <canvas #piePayCanvas *ngIf="analytics.totalEvents > 0"></canvas>
+        <p class="chart-empty" *ngIf="analytics.totalEvents === 0">Nema događaja u izabranom periodu.</p>
       </div>
       <div class="chart-card wide">
         <h3>Događaji po mesecu</h3>
-        <canvas #barMonthCanvas></canvas>
+        <canvas #barMonthCanvas *ngIf="analytics.totalEvents > 0"></canvas>
+        <p class="chart-empty" *ngIf="analytics.totalEvents === 0">Nema događaja u izabranom periodu — probaj period „Godišnje“.</p>
       </div>
       <div class="chart-card" *ngIf="analytics.avgPerformance || analytics.avgSound || analytics.avgSpace || analytics.avgOverall">
         <h3>Prosečne ocene po kategorijama</h3>
@@ -119,6 +122,24 @@
         <tbody>
           <tr *ngFor="let loc of analytics.topLocations; let i = index"
               [class.highlight]="loc.id === selectedLocationId">
+            <td>{{ i + 1 }}</td>
+            <td>{{ loc.name }}</td>
+            <td>⭐ {{ loc.averageRating | number:'1.1-1' }}</td>
+            <td>{{ loc.totalReviews }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bottom lokacije -->
+    <div class="table-card" *ngIf="analytics.bottomLocations?.length > 0">
+      <h3>📉 Top 5 mesta sa najnižom ocenom</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Naziv</th><th>Prosečna ocena</th><th>Utisaka</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let loc of analytics.bottomLocations; let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ loc.name }}</td>
             <td>⭐ {{ loc.averageRating | number:'1.1-1' }}</td>

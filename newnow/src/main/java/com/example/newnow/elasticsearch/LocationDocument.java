@@ -18,10 +18,20 @@ public class LocationDocument {
     )
     private String name;
 
-    @Field(type = FieldType.Text, analyzer = "serbian_analyzer")
+    @MultiField(
+        mainField = @Field(type = FieldType.Text, analyzer = "serbian_analyzer"),
+        otherFields = {
+            @InnerField(suffix = "keyword", type = FieldType.Keyword)
+        }
+    )
     private String description;
 
-    @Field(type = FieldType.Text, analyzer = "serbian_analyzer")
+    @MultiField(
+        mainField = @Field(type = FieldType.Text, analyzer = "serbian_analyzer"),
+        otherFields = {
+            @InnerField(suffix = "keyword", type = FieldType.Keyword)
+        }
+    )
     private String pdfContent;
 
     @Field(type = FieldType.Keyword)

@@ -3,11 +3,14 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
+import { CommentThreadComponent } from '../comment-thread/comment-thread.component';
+import { resolveMediaUrl } from '../../utils/media-url';
 
 @Component({
   selector: 'app-location-details',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CommentThreadComponent],
   templateUrl: './location-details.component.html',
   styleUrls: ['./location-details.component.css']
 })
@@ -17,13 +20,13 @@ export class LocationDetailsComponent implements OnInit {
   upcomingEvents: any[] = [];
   reviews: any[] = [];
   pastRegularEvents: any[] = [];
-  // M3: komentari po review id-u
   commentsMap: { [reviewId: number]: any[] } = {};
   replyingToCommentId: number | null = null;
   replyingToReviewId: number | null = null;
   replyText = '';
 
   Math = Math;
+  apiUrl = environment.apiUrl;
 
   newReview = {
     performanceRating: 0,
@@ -50,7 +53,7 @@ export class LocationDetailsComponent implements OnInit {
   }
 
   loadLocationDetails(): void {
-    this.http.get(`http://localhost:8080/api/locations/${this.locationId}/details`)
+    this.http.get(`${this.apiUrl}/locations/${this.locationId}/details`)
       .subscribe({
         next: (data: any) => {
           this.location = data;
@@ -60,9 +63,8 @@ export class LocationDetailsComponent implements OnInit {
       });
   }
 
-  // K5: učitaj redovne prošle događaje za ovu lokaciju
   loadPastRegularEvents(): void {
-    this.http.get<any[]>(`http://localhost:8080/api/events/byLocation/${this.locationId}`)
+    this.http.get<any[]>(`${this.apiUrl}/events/byLocation/${this.locationId}`)
       .subscribe({
         next: (events) => {
           const now = new Date();
@@ -75,25 +77,19 @@ export class LocationDetailsComponent implements OnInit {
   }
 
   loadReviews(sortBy?: string, order?: string): void {
-    let url = `http://localhost:8080/api/locations/${this.locationId}/reviews`;
-
+    let url = `${this.apiUrl}/locations/${this.locationId}/reviews`;
     if (sortBy && order) {
       url += `?sortBy=${sortBy}&order=${order}`;
     }
 
     this.http.get(url).subscribe({
-      next: (data: any) => {
-        this.reviews = data;
-        console.log('📋 Učitani utisci:', this.reviews); // ✅ Debug
-      },
+      next: (data: any) => { this.reviews = data; },
       error: (err) => console.error('Greška pri učitavanju utisaka:', err)
     });
   }
 
-  // ✅ IZMENJENO - submitReview sa 4 kategorije ocena
   submitReview(): void {
     const token = localStorage.getItem('token');
-
     if (!token) {
       alert('Morate biti ulogovani da biste ostavili utisak!');
       return;
@@ -104,68 +100,51 @@ export class LocationDetailsComponent implements OnInit {
       return;
     }
 
-    if (!this.newReview.comment.trim()) {
-      alert('Molimo unesite komentar!');
-      return;
-    }
-
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
 
-    // ✅ Kreiraj payload - pošalji samo ocene > 0
-    const payload: any = {
-      comment: this.newReview.comment,
-      eventId: this.newReview.eventId
-    };
+    const payload: any = { eventId: this.newReview.eventId };
+    const comment = this.newReview.comment.trim();
+    if (comment) payload.comment = comment;
 
     if (this.newReview.performanceRating > 0) payload.performanceRating = this.newReview.performanceRating;
-    if (this.newReview.soundLightRating > 0)  payload.soundLightRating  = this.newReview.soundLightRating;
-    if (this.newReview.spaceRating > 0)       payload.spaceRating       = this.newReview.spaceRating;
-    if (this.newReview.overallRating > 0)     payload.overallRating     = this.newReview.overallRating;
+    if (this.newReview.soundLightRating > 0) payload.soundLightRating = this.newReview.soundLightRating;
+    if (this.newReview.spaceRating > 0) payload.spaceRating = this.newReview.spaceRating;
+    if (this.newReview.overallRating > 0) payload.overallRating = this.newReview.overallRating;
 
-    console.log('📤 Šaljem payload:', payload); // ✅ Debug
-
-    this.http.post(
-      `http://localhost:8080/api/locations/${this.locationId}/reviews`,
-      payload,
-      { headers }
-    ).subscribe({
-      next: () => {
-        alert('Utisak uspešno dodat! ✅');
-        // ✅ Resetuj formu
-        this.newReview = {
-          performanceRating: 0,
-          soundLightRating: 0,
-          spaceRating: 0,
-          overallRating: 0,
-          comment: '',
-          eventId: null
-        };
-        this.loadLocationDetails();
-        this.loadReviews(this.sortBy, this.sortOrder);
-      },
-      error: (err) => {
-        console.error('Greška pri dodavanju utiska:', err);
-
-        // ✅ Prikaži grešku iz backend-a ako postoji
-        if (err.error && err.error.error) {
-          alert('❌ ' + err.error.error);
-        } else {
-          alert('Greška pri dodavanju utiska!');
+    this.http.post(`${this.apiUrl}/locations/${this.locationId}/reviews`, payload, { headers })
+      .subscribe({
+        next: () => {
+          alert('Utisak uspešno dodat! ✅');
+          this.newReview = {
+            performanceRating: 0,
+            soundLightRating: 0,
+            spaceRating: 0,
+            overallRating: 0,
+            comment: '',
+            eventId: null
+          };
+          this.loadLocationDetails();
+          this.loadReviews(this.sortBy, this.sortOrder);
+        },
+        error: (err) => {
+          if (err.error?.error) {
+            alert('❌ ' + err.error.error);
+          } else {
+            alert('Greška pri dodavanju utiska!');
+          }
         }
-      }
-    });
+      });
   }
 
   onSortChange(): void {
     this.loadReviews(this.sortBy, this.sortOrder);
   }
 
-  // M3: učitaj komentare za jedan review
   loadComments(reviewId: number): void {
-    this.http.get<any[]>(`http://localhost:8080/api/comments/review/${reviewId}`)
+    this.http.get<any[]>(`${this.apiUrl}/comments/review/${reviewId}`)
       .subscribe({
         next: (comments) => { this.commentsMap[reviewId] = comments; },
         error: (err) => console.error('Greška komentari:', err)
@@ -174,7 +153,6 @@ export class LocationDetailsComponent implements OnInit {
 
   toggleComments(reviewId: number): void {
     if (this.commentsMap[reviewId] !== undefined) {
-      // već učitani — samo toggle prikaz (brisanjem iz mape skrivamo)
       delete this.commentsMap[reviewId];
     } else {
       this.loadComments(reviewId);
@@ -200,8 +178,8 @@ export class LocationDetailsComponent implements OnInit {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
     const url = this.replyingToCommentId
-      ? `http://localhost:8080/api/comments/${this.replyingToCommentId}/reply`
-      : `http://localhost:8080/api/comments/review/${this.replyingToReviewId}`;
+      ? `${this.apiUrl}/comments/${this.replyingToCommentId}/reply`
+      : `${this.apiUrl}/comments/review/${this.replyingToReviewId}`;
 
     this.http.post(url, { text: this.replyText }, { headers }).subscribe({
       next: () => {
@@ -213,7 +191,7 @@ export class LocationDetailsComponent implements OnInit {
   }
 
   getRatingStars(rating: number): string {
-    return '⭐'.repeat(Math.min(rating, 10)); // ✅ Max 10 zvezda
+    return '⭐'.repeat(Math.min(rating, 10));
   }
 
   getFormattedDate(dateString: string): string {
@@ -225,5 +203,17 @@ export class LocationDetailsComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  getImageUrl(url: string): string {
+    return resolveMediaUrl(url, 'assets/placeholder.jpg');
+  }
+
+  downloadPdf(): void {
+    window.open(`${this.apiUrl}/search/locations/${this.locationId}/pdf`, '_blank');
+  }
+
+  isFreeEvent(price: number | null | undefined): boolean {
+    return price == null || price === 0;
   }
 }

@@ -10,8 +10,8 @@ import com.example.newnow.repository.LocationRepository;
 import com.example.newnow.repository.LocationReviewRepository;
 import com.example.newnow.security.JwtUtil;
 import com.example.newnow.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class AnalyticsController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AnalyticsController.class);
+    private static final Logger logger = LogManager.getLogger(AnalyticsController.class);
 
     @Autowired private EventRepository eventRepository;
     @Autowired private LocationRepository locationRepository;
@@ -128,8 +128,8 @@ public class AnalyticsController {
                     })
                     .collect(Collectors.toList());
 
-            // ─── TOP LOKACIJE (sve, po prosečnoj oceni) ───
-            List<Map<String, Object>> topLocations = locationRepository.findAllValidLocations().stream()
+            // ─── TOP / BOTTOM LOKACIJE (sve, po prosečnoj oceni) ───
+            List<Map<String, Object>> allLocationStats = locationRepository.findAllValidLocations().stream()
                     .map(loc -> {
                         Double avg = reviewRepository.getAverageRatingForLocation(loc.getId());
                         Long cnt  = reviewRepository.getTotalReviewsForLocation(loc.getId());
@@ -140,7 +140,16 @@ public class AnalyticsController {
                         m.put("totalReviews", cnt != null ? cnt : 0L);
                         return m;
                     })
+                    .filter(m -> ((Long) m.get("totalReviews")) > 0)
+                    .collect(Collectors.toList());
+
+            List<Map<String, Object>> topLocations = allLocationStats.stream()
                     .sorted(Comparator.comparingDouble(m -> -((Double) m.get("averageRating"))))
+                    .limit(5)
+                    .collect(Collectors.toList());
+
+            List<Map<String, Object>> bottomLocations = allLocationStats.stream()
+                    .sorted(Comparator.comparingDouble(m -> (Double) m.get("averageRating")))
                     .limit(5)
                     .collect(Collectors.toList());
 
@@ -163,8 +172,8 @@ public class AnalyticsController {
             response.put("avgSpace",       avgSpace.isPresent()       ? Math.round(avgSpace.getAsDouble() * 10) / 10.0 : null);
             response.put("avgOverall",     avgOverall.isPresent()     ? Math.round(avgOverall.getAsDouble() * 10) / 10.0 : null);
             response.put("recentReviews", recentReviews);
-            // Top lokacije
             response.put("topLocations", topLocations);
+            response.put("bottomLocations", bottomLocations);
 
             logger.info("M4 — Analitika za lokaciju {} ({}→{}): {} dogadjaja, {} utisaka",
                     location.getName(), startDate, endDate, totalEvents, totalReviews);
